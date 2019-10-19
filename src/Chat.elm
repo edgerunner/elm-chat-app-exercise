@@ -34,15 +34,20 @@ convList model =
 convListing : (String -> Maybe User) -> Conversation -> Maybe (Html msg)
 convListing user conv =
     Maybe.map
-        (\u -> li [] [ userLabel u, Element.layout [] (unreadBadge conv.unread) ])
+        (\u ->
+            li [] <|
+                List.map
+                    (Element.layout [])
+                    [ userLabel u, unreadBadge conv.unread ]
+        )
         (user conv.with)
 
 
-userLabel : User -> Html msg
+userLabel : User -> Element msg
 userLabel user =
-    h4 []
-        [ img [ src user.avatar ] []
-        , Html.text user.name
+    row []
+        [ Element.image [] { src = user.avatar, description = user.name }
+        , Element.text user.name
         ]
 
 
