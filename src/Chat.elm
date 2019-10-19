@@ -2,6 +2,10 @@ module Chat exposing (Model, chatView)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
+import Element exposing (Element, alignRight, centerY, el, fill, padding, rgb255, row, spacing, text, width)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
 import Html exposing (..)
 import Html.Attributes exposing (class, src)
 import User exposing (User)
@@ -30,7 +34,7 @@ convList model =
 convListing : (String -> Maybe User) -> Conversation -> Maybe (Html msg)
 convListing user conv =
     Maybe.map
-        (\u -> li [] [ userLabel u, unreadBadge conv.unread ])
+        (\u -> li [] [ userLabel u, Element.layout [] (unreadBadge conv.unread) ])
         (user conv.with)
 
 
@@ -38,18 +42,20 @@ userLabel : User -> Html msg
 userLabel user =
     h4 []
         [ img [ src user.avatar ] []
-        , text user.name
+        , Html.text user.name
         ]
 
 
-unreadBadge : Int -> Html msg
+unreadBadge : Int -> Element msg
 unreadBadge count =
     case count of
         0 ->
-            text ""
+            Element.none
 
         _ ->
-            span [ class "unread" ] [ text <| String.fromInt count ]
+            String.fromInt count
+                |> Element.text
+                |> el []
 
 
 userById : Dict String User -> String -> Maybe User
