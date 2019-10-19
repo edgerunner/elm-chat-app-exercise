@@ -2,7 +2,7 @@ module Chat exposing (Model, chatView)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
-import Element exposing (Element, alignRight, centerY, el, fill, padding, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, centerY, column, el, fill, padding, rgb255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -21,16 +21,14 @@ type alias Model =
 chatView : Model -> Html msg
 chatView model =
     div [ class "chat" ]
-        [ convList model
+        [ Element.layout [] (convList model)
         ]
 
 
-convList : Model -> Html msg
+convList : Model -> Element msg
 convList model =
-    ul [ class "conversations" ] <|
-        List.map
-            (Element.layout [])
-            (List.filterMap (convListing (userById model.users)) model.conversations)
+    column []
+        (List.filterMap (convListing (userById model.users)) model.conversations)
 
 
 convListing : (String -> Maybe User) -> Conversation -> Maybe (Element msg)
