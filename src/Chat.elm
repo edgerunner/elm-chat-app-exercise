@@ -19,14 +19,20 @@ type alias Model =
 chatView : Model -> Element msg
 chatView model =
     row
-        []
+        [ width fill
+        , height fill
+        ]
         [ convList model
         ]
 
 
 convList : Model -> Element msg
 convList model =
-    column []
+    column
+        [ width fill
+        , height shrink
+        , alignTop
+        ]
         (List.filterMap (convListing (userById model.users)) model.conversations)
 
 
