@@ -1,4 +1,4 @@
-module Chat exposing (Model, chatView)
+module Chat exposing (Model, init, view)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
@@ -9,15 +9,31 @@ import Element.Font as Font
 import User exposing (User)
 
 
-type alias Model =
-    { users : Dict String User
-    , conversations : List Conversation
-    , currentUser : String
-    }
+type Model
+    = Model
+        { users : Dict String User
+        , conversations : List Conversation
+        , focus : Focus
+        }
 
 
-chatView : Model -> Element msg
-chatView model =
+type Focus
+    = FullView
+    | ListView
+    | ConversationView
+
+
+init : List User -> List Conversation -> Model
+init users conversations =
+    Model
+        { users = List.foldl (\user -> Dict.insert user.id user) Dict.empty users
+        , conversations = conversations
+        , focus = ListView
+        }
+
+
+view : Model -> Element msg
+view model =
     row
         [ width fill
         , height fill
@@ -27,7 +43,7 @@ chatView model =
 
 
 convList : Model -> Element msg
-convList model =
+convList (Model model) =
     column
         [ width fill
         , height shrink
