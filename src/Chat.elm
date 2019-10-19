@@ -27,18 +27,20 @@ chatView model =
 
 convList : Model -> Html msg
 convList model =
-    ul [ class "conversations" ]
-        (List.filterMap (convListing (userById model.users)) model.conversations)
+    ul [ class "conversations" ] <|
+        List.map
+            (Element.layout [])
+            (List.filterMap (convListing (userById model.users)) model.conversations)
 
 
-convListing : (String -> Maybe User) -> Conversation -> Maybe (Html msg)
+convListing : (String -> Maybe User) -> Conversation -> Maybe (Element msg)
 convListing user conv =
     Maybe.map
         (\u ->
-            li [] <|
-                List.map
-                    (Element.layout [])
-                    [ userLabel u, unreadBadge conv.unread ]
+            row []
+                [ userLabel u
+                , unreadBadge conv.unread
+                ]
         )
         (user conv.with)
 
