@@ -1,4 +1,4 @@
-module Main exposing (Msg, init, subscriptions, update, view)
+module Main exposing (LoadingModel, Model(..), Msg(..), init, subscriptions, update, view)
 
 import Browser
 import Conversation exposing (Conversation)
