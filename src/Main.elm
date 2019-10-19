@@ -4,6 +4,7 @@ import Browser
 import Chat exposing (chatView)
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
+import Element exposing (layout)
 import Html exposing (..)
 import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData, append)
@@ -92,7 +93,7 @@ view model =
             loadingView lm
 
         Chat cm ->
-            chatView cm
+            layout [] (chatView cm)
 
         AppLoadingError e ->
             loadingErrorView e

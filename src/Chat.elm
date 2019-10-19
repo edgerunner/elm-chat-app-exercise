@@ -6,8 +6,6 @@ import Element exposing (Element, alignRight, centerY, column, el, fill, padding
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Html exposing (..)
-import Html.Attributes exposing (class, src)
 import User exposing (User)
 
 
@@ -18,10 +16,11 @@ type alias Model =
     }
 
 
-chatView : Model -> Html msg
+chatView : Model -> Element msg
 chatView model =
-    div [ class "chat" ]
-        [ Element.layout [] (convList model)
+    row
+        []
+        [ convList model
         ]
 
 
