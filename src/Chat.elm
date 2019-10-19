@@ -2,7 +2,7 @@ module Chat exposing (Model, chatView)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
-import Element exposing (Element, alignRight, centerY, column, el, fill, padding, rgb255, row, spacing, text, width)
+import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -59,9 +59,39 @@ unreadBadge count =
         _ ->
             String.fromInt count
                 |> Element.text
-                |> el []
+                |> el
+                    [ Font.bold
+                    , Font.size (em 1)
+                    , Font.color white
+                    , Border.rounded (em 1)
+                    , Background.color red
+                    , width (minimum (em 1.5) shrink)
+                    , height (eml 1.5)
+                    , padding (em 0.25)
+                    , Font.center
+                    ]
 
 
 userById : Dict String User -> String -> Maybe User
 userById users id =
     Dict.get id users
+
+
+white : Color
+white =
+    rgb255 255 255 255
+
+
+red : Color
+red =
+    rgb255 255 0 0
+
+
+em : Float -> Int
+em =
+    truncate << (*) 18
+
+
+eml : Float -> Length
+eml =
+    px << em
