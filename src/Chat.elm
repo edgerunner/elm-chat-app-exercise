@@ -44,8 +44,19 @@ convListing user conv =
 
 userLabel : User -> Element msg
 userLabel user =
-    row []
-        [ Element.image [] { src = user.avatar, description = user.name }
+    row
+        [ width fill
+        , height (eml 3)
+        , centerY
+        , spacing (em 0.5)
+        ]
+        [ Element.image
+            [ height (eml 2.4)
+            , width (eml 2.4)
+            , Border.rounded (em 1.2)
+            , clip
+            ]
+            { src = user.avatar, description = user.name }
         , Element.text user.name
         ]
 
