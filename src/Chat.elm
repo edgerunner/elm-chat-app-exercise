@@ -34,9 +34,15 @@ convListing : (String -> Maybe User) -> Conversation -> Maybe (Element msg)
 convListing user conv =
     Maybe.map
         (\u ->
-            row []
+            row
+                [ width fill
+                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+                , spacing (em 1)
+                , paddingXY (em 0.25) 0
+                ]
                 [ userLabel u
                 , unreadBadge conv.unread
+                , text "❯"
                 ]
         )
         (user conv.with)
