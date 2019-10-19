@@ -1,10 +1,11 @@
 module Main exposing (LoadingModel, Model(..), Msg(..), init, subscriptions, update, view)
 
 import Browser
+import Chat exposing (chatView)
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Html exposing (..)
-import Html.Attributes exposing (class, src)
+import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData, append)
 import User exposing (User)
 
@@ -21,20 +22,13 @@ main =
 
 type Model
     = AppLoading LoadingModel
-    | Chat ChatModel
+    | Chat Chat.Model
     | AppLoadingError String
 
 
 type alias LoadingModel =
     { users : WebData (List User)
     , conversations : WebData (List Conversation)
-    }
-
-
-type alias ChatModel =
-    { users : Dict String User
-    , conversations : List Conversation
-    , currentUser : String
     }
 
 
@@ -68,7 +62,7 @@ dataCheck lModel =
     noop <|
         case append lModel.users lModel.conversations of
             Success ( users, conversations ) ->
-                Chat (ChatModel (keyById users) conversations "1")
+                Chat (Chat.Model (keyById users) conversations "1")
 
             NotAsked ->
                 AppLoading lModel
@@ -108,49 +102,6 @@ loadingView : LoadingModel -> Html Msg
 loadingView model =
     Debug.toString model
         |> text
-
-
-chatView : ChatModel -> Html Msg
-chatView model =
-    div [ class "chat" ]
-        [ convList model
-        ]
-
-
-convList : ChatModel -> Html Msg
-convList model =
-    ul [ class "conversations" ]
-        (List.filterMap (convListing (userById model.users)) model.conversations)
-
-
-convListing : (String -> Maybe User) -> Conversation -> Maybe (Html Msg)
-convListing user conv =
-    Maybe.map
-        (\u -> li [] [ userLabel u, unreadBadge conv.unread ])
-        (user conv.with)
-
-
-userLabel : User -> Html Msg
-userLabel user =
-    h4 []
-        [ img [ src user.avatar ] []
-        , text user.name
-        ]
-
-
-unreadBadge : Int -> Html Msg
-unreadBadge count =
-    case count of
-        0 ->
-            text ""
-
-        _ ->
-            span [ class "unread" ] [ text <| String.fromInt count ]
-
-
-userById : Dict String User -> String -> Maybe User
-userById users id =
-    Dict.get id users
 
 
 loadingErrorView : String -> Html Msg
