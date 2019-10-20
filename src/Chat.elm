@@ -1,23 +1,91 @@
-module Chat exposing (Model, chatView)
+module Chat exposing (Model, Msg, init, update, view)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import User exposing (User)
 
 
-type alias Model =
+type Model
+    = Model ModelRecord
+
+
+type alias ModelRecord =
     { users : Dict String User
     , conversations : List Conversation
-    , currentUser : String
+    , focus : Focus
     }
 
 
-chatView : Model -> Element msg
-chatView model =
+map : (ModelRecord -> a) -> Model -> a
+map fn (Model model) =
+    fn model
+
+
+type Msg
+    = FocusConversation Conversation
+    | BlurConversation
+
+
+type Focus
+    = FullView
+    | ListView
+    | ConversationView Conversation
+
+
+init : List User -> List Conversation -> Model
+init users conversations =
+    Model
+        { users = List.foldl (\user -> Dict.insert user.id user) Dict.empty users
+        , conversations = conversations
+        , focus = ListView
+        }
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        FocusConversation conv ->
+            ( focusConversation conv model, Cmd.none )
+
+        BlurConversation ->
+            ( blurConversation model, Cmd.none )
+
+
+focusConversation : Conversation -> Model -> Model
+focusConversation conv model =
+    let
+        rest =
+            map identity model
+    in
+    Model
+        { rest | focus = ConversationView conv }
+
+
+blurConversation : Model -> Model
+blurConversation (Model model) =
+    Model { model | focus = ListView }
+
+
+view : Model -> Element Msg
+view model =
+    case map .focus model of
+        ListView ->
+            listView model
+
+        ConversationView _ ->
+            conversationView model
+
+        _ ->
+            Debug.todo "implement the other views"
+
+
+listView : Model -> Element Msg
+listView model =
     row
         [ width fill
         , height fill
@@ -26,8 +94,8 @@ chatView model =
         ]
 
 
-convList : Model -> Element msg
-convList model =
+convList : Model -> Element Msg
+convList (Model model) =
     column
         [ width fill
         , height shrink
@@ -36,7 +104,7 @@ convList model =
         (List.filterMap (convListing (userById model.users)) model.conversations)
 
 
-convListing : (String -> Maybe User) -> Conversation -> Maybe (Element msg)
+convListing : (String -> Maybe User) -> Conversation -> Maybe (Element Msg)
 convListing user conv =
     Maybe.map
         (\u ->
@@ -45,6 +113,7 @@ convListing user conv =
                 , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
                 , spacing (em 1)
                 , paddingXY (em 0.25) 0
+                , Events.onClick <| FocusConversation conv
                 ]
                 [ userLabel u
                 , unreadBadge conv.unread
@@ -100,9 +169,25 @@ userById users id =
     Dict.get id users
 
 
+conversationView : Model -> Element Msg
+conversationView (Model model) =
+    paragraph
+        [ width fill
+        , height fill
+        , Background.color gray
+        , Events.onClick BlurConversation
+        ]
+        [ text (Debug.toString model.focus) ]
+
+
 white : Color
 white =
     rgb255 255 255 255
+
+
+gray : Color
+gray =
+    rgb255 192 192 192
 
 
 red : Color

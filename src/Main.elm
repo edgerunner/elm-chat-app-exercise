@@ -1,7 +1,7 @@
 module Main exposing (LoadingModel, Model(..), Msg(..), init, subscriptions, update, view)
 
 import Browser
-import Chat exposing (chatView)
+import Chat
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (layout)
@@ -43,6 +43,7 @@ type alias Message =
 type Msg
     = GotUsers (WebData (List User))
     | GotConversations (WebData (List Conversation))
+    | ChatMsg Chat.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -54,6 +55,10 @@ update msg model =
         ( GotConversations webData, AppLoading loadingModel ) ->
             dataCheck { loadingModel | conversations = webData }
 
+        ( ChatMsg chatMsg, Chat chatModel ) ->
+            Chat.update chatMsg chatModel
+                |> Tuple.mapBoth Chat (Cmd.map ChatMsg)
+
         _ ->
             noop model
 
@@ -63,7 +68,7 @@ dataCheck lModel =
     noop <|
         case append lModel.users lModel.conversations of
             Success ( users, conversations ) ->
-                Chat (Chat.Model (keyById users) conversations "1")
+                Chat (Chat.init users conversations)
 
             NotAsked ->
                 AppLoading lModel
@@ -75,17 +80,6 @@ dataCheck lModel =
                 AppLoadingError "Loading error"
 
 
-type alias WithId a =
-    { a | id : String }
-
-
-keyById : List (WithId a) -> Dict String (WithId a)
-keyById =
-    List.foldl
-        (\i -> Dict.insert i.id i)
-        Dict.empty
-
-
 view : Model -> Html Msg
 view model =
     case model of
@@ -93,7 +87,9 @@ view model =
             loadingView lm
 
         Chat cm ->
-            layout [] (chatView cm)
+            Chat.view cm
+                |> Element.map ChatMsg
+                |> layout []
 
         AppLoadingError e ->
             loadingErrorView e
