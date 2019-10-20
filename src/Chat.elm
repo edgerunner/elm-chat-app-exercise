@@ -62,39 +62,60 @@ update msg model =
 
 
 focusConversation : Conversation -> Model -> Model
-focusConversation conv (Model model) =
-    Model { model | focus = ConversationView conv }
+focusConversation conv model =
+    case map .focus model of
+        ListView ->
+            updateFocus model (ConversationView conv)
+
+        FullView _ ->
+            updateFocus model (FullView (Just conv))
+
+        _ ->
+            model
 
 
 blurConversation : Model -> Model
-blurConversation (Model model) =
-    Model { model | focus = ListView }
+blurConversation model =
+    case map .focus model of
+        ConversationView _ ->
+            updateFocus model ListView
+
+        _ ->
+            model
 
 
 windowResize : Int -> Model -> Model
-windowResize width (Model model) =
+windowResize width model =
     let
         breakpoint =
             em 20
 
         wide =
             width > breakpoint
+
+        focusOn =
+            updateFocus model
     in
-    case ( model.focus, wide ) of
+    case ( map .focus model, wide ) of
         ( ConversationView conv, True ) ->
-            Model { model | focus = FullView (Just conv) }
+            focusOn (FullView (Just conv))
 
         ( ListView, True ) ->
-            Model { model | focus = FullView Nothing }
+            focusOn (FullView Nothing)
 
         ( FullView Nothing, False ) ->
-            Model { model | focus = ListView }
+            focusOn ListView
 
         ( FullView (Just conv), False ) ->
-            Model { model | focus = ConversationView conv }
+            focusOn (ConversationView conv)
 
         _ ->
-            Model model
+            model
+
+
+updateFocus : Model -> Focus -> Model
+updateFocus (Model model) focus =
+    Model { model | focus = focus }
 
 
 subscriptions : Model -> Sub Msg
