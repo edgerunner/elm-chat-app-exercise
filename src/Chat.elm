@@ -166,12 +166,12 @@ userById users id =
 
 conversationView : Model -> Element msg
 conversationView (Model model) =
-    el
+    paragraph
         [ width fill
         , height fill
         , Background.color gray
         ]
-        (text "Conversation view placeholder")
+        [ text (Debug.toString model.focus) ]
 
 
 white : Color
