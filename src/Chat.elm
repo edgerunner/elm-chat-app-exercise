@@ -1,4 +1,4 @@
-module Chat exposing (Model, init, view)
+module Chat exposing (Model, Msg, init, update, view)
 
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
@@ -25,10 +25,15 @@ map fn (Model model) =
     fn model
 
 
+type Msg
+    = FocusConversation Conversation
+    | BlurConversation
+
+
 type Focus
     = FullView
     | ListView
-    | ConversationView
+    | ConversationView Conversation
 
 
 init : List User -> List Conversation -> Model
@@ -40,13 +45,33 @@ init users conversations =
         }
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        FocusConversation conv ->
+            ( focusConversation conv model, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
+
+
+focusConversation : Conversation -> Model -> Model
+focusConversation conv model =
+    let
+        rest =
+            map identity model
+    in
+    Model
+        { rest | focus = ConversationView conv }
+
+
 view : Model -> Element msg
 view model =
     case map .focus model of
         ListView ->
             listView model
 
-        ConversationView ->
+        ConversationView _ ->
             conversationView model
 
         _ ->
