@@ -173,26 +173,31 @@ convList (Model model) =
         , height shrink
         , alignTop
         ]
-        (List.filterMap (convListing (userById model.users)) model.conversations)
-
-
-convListing : (String -> Maybe User) -> Conversation -> Maybe (Element Msg)
-convListing user conv =
-    Maybe.map
-        (\u ->
-            row
-                [ width fill
-                , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
-                , spacing (em 1)
-                , paddingXY (em 0.25) 0
-                , Events.onClick <| FocusConversation conv
-                ]
-                [ userLabel u
-                , unreadBadge conv.unread
-                , text "❯"
-                ]
+        (List.filterMap
+            (\conv ->
+                let
+                    user =
+                        userById model.users conv.with
+                in
+                Maybe.map (convListing conv) user
+            )
+            model.conversations
         )
-        (user conv.with)
+
+
+convListing : Conversation -> User -> Element Msg
+convListing conv user =
+    row
+        [ width fill
+        , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+        , spacing (em 1)
+        , paddingXY (em 0.25) 0
+        , Events.onClick <| FocusConversation conv
+        ]
+        [ userLabel user
+        , unreadBadge conv.unread
+        , text "❯"
+        ]
 
 
 unreadBadge : Int -> Element msg
