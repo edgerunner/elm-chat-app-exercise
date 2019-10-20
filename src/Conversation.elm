@@ -7,6 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Json.Decode as D
+import Messages exposing (Messages, get)
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, red, white)
 import User exposing (User, userLabel)
@@ -16,6 +17,7 @@ type alias Conversation =
     { id : String
     , with : String
     , unread : Int
+    , messages : WebData Messages
     }
 
 
@@ -26,10 +28,11 @@ get =
 
 decoder : D.Decoder (List Conversation)
 decoder =
-    D.map3 Conversation
+    D.map4 Conversation
         (D.field "id" D.string)
         (D.field "with_user_id" D.string)
         (D.field "unread_message_count" D.int)
+        (D.succeed RemoteData.NotAsked)
         |> D.list
 
 
