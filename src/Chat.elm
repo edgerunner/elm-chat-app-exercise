@@ -1,5 +1,6 @@
 module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
+import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
@@ -8,6 +9,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Task
 import User exposing (User)
 
 
@@ -31,6 +33,7 @@ type Msg
     = FocusConversation Conversation
     | BlurConversation
     | WindowResize Int Int
+    | WindowInitialize Browser.Dom.Viewport
 
 
 type Focus
@@ -39,13 +42,15 @@ type Focus
     | ConversationView Conversation
 
 
-init : List User -> List Conversation -> Model
+init : List User -> List Conversation -> ( Model, Cmd Msg )
 init users conversations =
-    Model
+    ( Model
         { users = List.foldl (\user -> Dict.insert user.id user) Dict.empty users
         , conversations = conversations
         , focus = ListView
         }
+    , Task.perform WindowInitialize Browser.Dom.getViewport
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,6 +64,9 @@ update msg model =
 
         WindowResize width _ ->
             ( windowResize width model, Cmd.none )
+
+        WindowInitialize window ->
+            ( windowResize (truncate window.viewport.width) model, Cmd.none )
 
 
 focusConversation : Conversation -> Model -> Model
