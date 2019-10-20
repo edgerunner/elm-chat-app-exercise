@@ -11,7 +11,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Styles exposing (em, eml, gray, red, white)
 import Task
-import User exposing (User)
+import User exposing (User, userLabel)
 
 
 type Model
@@ -193,25 +193,6 @@ convListing user conv =
                 ]
         )
         (user conv.with)
-
-
-userLabel : User -> Element msg
-userLabel user =
-    row
-        [ width fill
-        , height (eml 3)
-        , centerY
-        , spacing (em 0.5)
-        ]
-        [ Element.image
-            [ height (eml 2.4)
-            , width (eml 2.4)
-            , Border.rounded (em 1.2)
-            , clip
-            ]
-            { src = user.avatar, description = user.name }
-        , Element.text user.name
-        ]
 
 
 unreadBadge : Int -> Element msg
