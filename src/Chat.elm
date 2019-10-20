@@ -5,6 +5,7 @@ import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Element.Font as Font
 import User exposing (User)
 
@@ -65,7 +66,7 @@ focusConversation conv model =
         { rest | focus = ConversationView conv }
 
 
-view : Model -> Element msg
+view : Model -> Element Msg
 view model =
     case map .focus model of
         ListView ->
@@ -78,7 +79,7 @@ view model =
             Debug.todo "implement the other views"
 
 
-listView : Model -> Element msg
+listView : Model -> Element Msg
 listView model =
     row
         [ width fill
@@ -88,7 +89,7 @@ listView model =
         ]
 
 
-convList : Model -> Element msg
+convList : Model -> Element Msg
 convList (Model model) =
     column
         [ width fill
@@ -98,7 +99,7 @@ convList (Model model) =
         (List.filterMap (convListing (userById model.users)) model.conversations)
 
 
-convListing : (String -> Maybe User) -> Conversation -> Maybe (Element msg)
+convListing : (String -> Maybe User) -> Conversation -> Maybe (Element Msg)
 convListing user conv =
     Maybe.map
         (\u ->
@@ -107,6 +108,7 @@ convListing user conv =
                 , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
                 , spacing (em 1)
                 , paddingXY (em 0.25) 0
+                , Events.onClick <| FocusConversation conv
                 ]
                 [ userLabel u
                 , unreadBadge conv.unread
