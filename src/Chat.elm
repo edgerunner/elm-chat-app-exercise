@@ -62,13 +62,8 @@ update msg model =
 
 
 focusConversation : Conversation -> Model -> Model
-focusConversation conv model =
-    let
-        rest =
-            map identity model
-    in
-    Model
-        { rest | focus = ConversationView conv }
+focusConversation conv (Model model) =
+    Model { model | focus = ConversationView conv }
 
 
 blurConversation : Model -> Model
