@@ -43,6 +43,7 @@ type alias Message =
 type Msg
     = GotUsers (WebData (List User))
     | GotConversations (WebData (List Conversation))
+    | ChatMsg Chat.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -53,6 +54,10 @@ update msg model =
 
         ( GotConversations webData, AppLoading loadingModel ) ->
             dataCheck { loadingModel | conversations = webData }
+
+        ( ChatMsg chatMsg, Chat chatModel ) ->
+            Chat.update chatMsg chatModel
+                |> Tuple.mapBoth Chat (Cmd.map ChatMsg)
 
         _ ->
             noop model
@@ -82,7 +87,9 @@ view model =
             loadingView lm
 
         Chat cm ->
-            layout [] (Chat.view cm)
+            Chat.view cm
+                |> Element.map ChatMsg
+                |> layout []
 
         AppLoadingError e ->
             loadingErrorView e
