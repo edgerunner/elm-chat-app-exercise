@@ -116,8 +116,19 @@ view model =
         ConversationView _ ->
             conversationView model
 
-        _ ->
-            Debug.todo "implement the other views"
+        FullView _ ->
+            fullView model
+
+
+fullView : Model -> Element Msg
+fullView model =
+    row
+        [ width fill
+        , height fill
+        ]
+        [ listView model
+        , conversationView model
+        ]
 
 
 listView : Model -> Element Msg
