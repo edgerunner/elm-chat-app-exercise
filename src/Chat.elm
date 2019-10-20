@@ -14,10 +14,10 @@ type Model
 
 
 type alias ModelRecord =
-        { users : Dict String User
-        , conversations : List Conversation
-        , focus : Focus
-        }
+    { users : Dict String User
+    , conversations : List Conversation
+    , focus : Focus
+    }
 
 
 map : (ModelRecord -> a) -> Model -> a
@@ -42,6 +42,16 @@ init users conversations =
 
 view : Model -> Element msg
 view model =
+    case map .focus model of
+        ListView ->
+            listView model
+
+        _ ->
+            Debug.todo "implement the other views"
+
+
+listView : Model -> Element msg
+listView model =
     row
         [ width fill
         , height fill
