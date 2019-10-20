@@ -10,11 +10,19 @@ import User exposing (User)
 
 
 type Model
-    = Model
+    = Model ModelRecord
+
+
+type alias ModelRecord =
         { users : Dict String User
         , conversations : List Conversation
         , focus : Focus
         }
+
+
+map : (ModelRecord -> a) -> Model -> a
+map fn (Model model) =
+    fn model
 
 
 type Focus
