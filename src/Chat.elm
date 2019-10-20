@@ -46,6 +46,9 @@ view model =
         ListView ->
             listView model
 
+        ConversationView ->
+            conversationView model
+
         _ ->
             Debug.todo "implement the other views"
 
@@ -134,9 +137,24 @@ userById users id =
     Dict.get id users
 
 
+conversationView : Model -> Element msg
+conversationView (Model model) =
+    el
+        [ width fill
+        , height fill
+        , Background.color gray
+        ]
+        (text "Conversation view placeholder")
+
+
 white : Color
 white =
     rgb255 255 255 255
+
+
+gray : Color
+gray =
+    rgb255 192 192 192
 
 
 red : Color
