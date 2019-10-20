@@ -1,7 +1,6 @@
 module Messages exposing (Message, Messages, decoder, get)
 
 import Api
-import Conversation exposing (Conversation)
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -22,11 +21,11 @@ type alias Messages =
     List Message
 
 
-get : Conversation -> (WebData Messages -> msg) -> Cmd msg
-get conv =
+get : String -> (WebData Messages -> msg) -> Cmd msg
+get convId =
     let
         path =
-            "/conversations/" ++ conv.id ++ "/messages"
+            "/conversations/" ++ convId ++ "/messages"
     in
     Api.get path decoder
 
