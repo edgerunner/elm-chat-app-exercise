@@ -9,6 +9,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Styles exposing (em, eml, gray, red, white)
 import Task
 import User exposing (User)
 
@@ -249,28 +250,3 @@ conversationView (Model model) =
         , Events.onClick BlurConversation
         ]
         [ text (Debug.toString model.focus) ]
-
-
-white : Color
-white =
-    rgb255 255 255 255
-
-
-gray : Color
-gray =
-    rgb255 192 192 192
-
-
-red : Color
-red =
-    rgb255 255 0 0
-
-
-em : Float -> Int
-em =
-    truncate << (*) 18
-
-
-eml : Float -> Length
-eml =
-    px << em
