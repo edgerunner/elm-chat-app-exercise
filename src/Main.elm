@@ -108,7 +108,12 @@ loadingErrorView error =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model of
+        Chat chatModel ->
+            Sub.map ChatMsg (Chat.subscriptions chatModel)
+
+        _ ->
+            Sub.none
 
 
 init : () -> ( Model, Cmd Msg )

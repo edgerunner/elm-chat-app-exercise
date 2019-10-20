@@ -1,5 +1,6 @@
-module Chat exposing (Model, Msg, init, update, view)
+module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
+import Browser.Events
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (..)
@@ -99,6 +100,11 @@ windowResize width (Model model) =
 
         _ ->
             Model model
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Browser.Events.onResize WindowResize
 
 
 view : Model -> Element Msg
