@@ -29,10 +29,11 @@ map fn (Model model) =
 type Msg
     = FocusConversation Conversation
     | BlurConversation
+    | WindowResize Int Int
 
 
 type Focus
-    = FullView
+    = FullView (Maybe Conversation)
     | ListView
     | ConversationView Conversation
 
@@ -55,6 +56,9 @@ update msg model =
         BlurConversation ->
             ( blurConversation model, Cmd.none )
 
+        WindowResize width _ ->
+            ( windowResize width model, Cmd.none )
+
 
 focusConversation : Conversation -> Model -> Model
 focusConversation conv model =
@@ -69,6 +73,32 @@ focusConversation conv model =
 blurConversation : Model -> Model
 blurConversation (Model model) =
     Model { model | focus = ListView }
+
+
+windowResize : Int -> Model -> Model
+windowResize width (Model model) =
+    let
+        breakpoint =
+            em 20
+
+        wide =
+            width > breakpoint
+    in
+    case ( model.focus, wide ) of
+        ( ConversationView conv, True ) ->
+            Model { model | focus = FullView (Just conv) }
+
+        ( ListView, True ) ->
+            Model { model | focus = FullView Nothing }
+
+        ( FullView Nothing, False ) ->
+            Model { model | focus = ListView }
+
+        ( FullView (Just conv), False ) ->
+            Model { model | focus = ConversationView conv }
+
+        _ ->
+            Model model
 
 
 view : Model -> Element Msg
