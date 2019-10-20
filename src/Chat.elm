@@ -52,8 +52,8 @@ update msg model =
         FocusConversation conv ->
             ( focusConversation conv model, Cmd.none )
 
-        _ ->
-            ( model, Cmd.none )
+        BlurConversation ->
+            ( blurConversation model, Cmd.none )
 
 
 focusConversation : Conversation -> Model -> Model
@@ -64,6 +64,11 @@ focusConversation conv model =
     in
     Model
         { rest | focus = ConversationView conv }
+
+
+blurConversation : Model -> Model
+blurConversation (Model model) =
+    Model { model | focus = ListView }
 
 
 view : Model -> Element Msg
@@ -164,12 +169,13 @@ userById users id =
     Dict.get id users
 
 
-conversationView : Model -> Element msg
+conversationView : Model -> Element Msg
 conversationView (Model model) =
     paragraph
         [ width fill
         , height fill
         , Background.color gray
+        , Events.onClick BlurConversation
         ]
         [ text (Debug.toString model.focus) ]
 
