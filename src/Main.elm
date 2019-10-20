@@ -65,19 +65,19 @@ update msg model =
 
 dataCheck : LoadingModel -> ( Model, Cmd Msg )
 dataCheck lModel =
-    noop <|
-        case append lModel.users lModel.conversations of
-            Success ( users, conversations ) ->
-                Chat (Chat.init users conversations)
+    case append lModel.users lModel.conversations of
+        Success ( users, conversations ) ->
+            Chat.init users conversations
+                |> Tuple.mapBoth Chat (Cmd.map ChatMsg)
 
-            NotAsked ->
-                AppLoading lModel
+        NotAsked ->
+            noop <| AppLoading lModel
 
-            Loading ->
-                AppLoading lModel
+        Loading ->
+            noop <| AppLoading lModel
 
-            Failure error ->
-                AppLoadingError "Loading error"
+        Failure error ->
+            noop <| AppLoadingError "Loading error"
 
 
 view : Model -> Html Msg
@@ -108,7 +108,12 @@ loadingErrorView error =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model of
+        Chat chatModel ->
+            Sub.map ChatMsg (Chat.subscriptions chatModel)
+
+        _ ->
+            Sub.none
 
 
 init : () -> ( Model, Cmd Msg )

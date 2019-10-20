@@ -1,5 +1,7 @@
-module Chat exposing (Model, Msg, init, update, view)
+module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
+import Browser.Dom
+import Browser.Events
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (..)
@@ -7,6 +9,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Task
 import User exposing (User)
 
 
@@ -29,21 +32,25 @@ map fn (Model model) =
 type Msg
     = FocusConversation Conversation
     | BlurConversation
+    | WindowResize Int Int
+    | WindowInitialize Browser.Dom.Viewport
 
 
 type Focus
-    = FullView
+    = FullView (Maybe Conversation)
     | ListView
     | ConversationView Conversation
 
 
-init : List User -> List Conversation -> Model
+init : List User -> List Conversation -> ( Model, Cmd Msg )
 init users conversations =
-    Model
+    ( Model
         { users = List.foldl (\user -> Dict.insert user.id user) Dict.empty users
         , conversations = conversations
         , focus = ListView
         }
+    , Task.perform WindowInitialize Browser.Dom.getViewport
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -55,20 +62,73 @@ update msg model =
         BlurConversation ->
             ( blurConversation model, Cmd.none )
 
+        WindowResize width _ ->
+            ( windowResize width model, Cmd.none )
+
+        WindowInitialize window ->
+            ( windowResize (truncate window.viewport.width) model, Cmd.none )
+
 
 focusConversation : Conversation -> Model -> Model
 focusConversation conv model =
-    let
-        rest =
-            map identity model
-    in
-    Model
-        { rest | focus = ConversationView conv }
+    case map .focus model of
+        ListView ->
+            updateFocus model (ConversationView conv)
+
+        FullView _ ->
+            updateFocus model (FullView (Just conv))
+
+        _ ->
+            model
 
 
 blurConversation : Model -> Model
-blurConversation (Model model) =
-    Model { model | focus = ListView }
+blurConversation model =
+    case map .focus model of
+        ConversationView _ ->
+            updateFocus model ListView
+
+        _ ->
+            model
+
+
+windowResize : Int -> Model -> Model
+windowResize width model =
+    let
+        breakpoint =
+            em 20
+
+        wide =
+            width > breakpoint
+
+        focusOn =
+            updateFocus model
+    in
+    case ( map .focus model, wide ) of
+        ( ConversationView conv, True ) ->
+            focusOn (FullView (Just conv))
+
+        ( ListView, True ) ->
+            focusOn (FullView Nothing)
+
+        ( FullView Nothing, False ) ->
+            focusOn ListView
+
+        ( FullView (Just conv), False ) ->
+            focusOn (ConversationView conv)
+
+        _ ->
+            model
+
+
+updateFocus : Model -> Focus -> Model
+updateFocus (Model model) focus =
+    Model { model | focus = focus }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Browser.Events.onResize WindowResize
 
 
 view : Model -> Element Msg
@@ -80,8 +140,19 @@ view model =
         ConversationView _ ->
             conversationView model
 
-        _ ->
-            Debug.todo "implement the other views"
+        FullView _ ->
+            fullView model
+
+
+fullView : Model -> Element Msg
+fullView model =
+    row
+        [ width fill
+        , height fill
+        ]
+        [ listView model
+        , conversationView model
+        ]
 
 
 listView : Model -> Element Msg
