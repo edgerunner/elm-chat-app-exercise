@@ -9,6 +9,8 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Messages exposing (Messages)
+import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray)
 import Task
 import User exposing (User, userLabel)
@@ -35,6 +37,7 @@ type Msg
     | BlurConversation
     | WindowResize Int Int
     | WindowInitialize Browser.Dom.Viewport
+    | GotMessages String (WebData Messages)
 
 
 type Focus
@@ -58,7 +61,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FocusConversation conv ->
-            ( focusConversation conv model, Cmd.none )
+            ( focusConversation conv model
+            , Messages.get conv.id (GotMessages conv.id)
+            )
 
         BlurConversation ->
             ( blurConversation model, Cmd.none )
@@ -68,6 +73,9 @@ update msg model =
 
         WindowInitialize window ->
             ( windowResize (truncate window.viewport.width) model, Cmd.none )
+
+        GotMessages convId messages ->
+            ( gotMessages convId messages model, Cmd.none )
 
 
 focusConversation : Conversation -> Model -> Model
@@ -125,6 +133,34 @@ windowResize width model =
 updateFocus : Model -> Focus -> Model
 updateFocus (Model model) focus =
     Model { model | focus = focus }
+
+
+gotMessages : String -> WebData Messages -> Model -> Model
+gotMessages convId messages (Model model) =
+    let
+        conversations =
+            List.map
+                (\conv ->
+                    if conv.id == convId then
+                        { conv | messages = messages }
+
+                    else
+                        conv
+                )
+                model.conversations
+
+        focus =
+            case model.focus of
+                ConversationView conv ->
+                    ConversationView { conv | messages = messages }
+
+                FullView (Just conv) ->
+                    FullView (Just { conv | messages = messages })
+
+                other ->
+                    other
+    in
+    Model { model | conversations = conversations, focus = focus }
 
 
 subscriptions : Model -> Sub Msg
