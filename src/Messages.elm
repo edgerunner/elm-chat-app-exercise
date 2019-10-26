@@ -1,4 +1,4 @@
-module Messages exposing (Message, Messages, decoder, get)
+module Messages exposing (Model, Msg, decoder, get)
 
 import Api
 import Iso8601
@@ -17,17 +17,29 @@ type alias Message =
     }
 
 
+type alias Model =
+    WebData Messages
+
+
 type alias Messages =
     List Message
 
 
-get : String -> (WebData Messages -> msg) -> Cmd msg
+type alias Id =
+    String
+
+
+type Msg
+    = GotMessages Id Model
+
+
+get : Id -> Cmd Msg
 get convId =
     let
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder
+    Api.get path decoder (GotMessages convId)
 
 
 

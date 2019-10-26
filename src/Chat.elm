@@ -9,7 +9,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import Messages exposing (Messages)
+import Messages
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray)
 import Task
@@ -37,7 +37,8 @@ type Msg
     | BlurConversation
     | WindowResize Int Int
     | WindowInitialize Browser.Dom.Viewport
-    | GotMessages String (WebData Messages)
+    | GotMessages String Messages.Model
+    | MessagesMsg Messages.Msg
 
 
 type Focus
@@ -62,7 +63,8 @@ update msg model =
     case msg of
         FocusConversation conv ->
             ( focusConversation conv model
-            , Messages.get conv.id (GotMessages conv.id)
+            , Messages.get conv.id
+                |> Cmd.map MessagesMsg
             )
 
         BlurConversation ->
@@ -76,6 +78,9 @@ update msg model =
 
         GotMessages convId messages ->
             ( gotMessages convId messages model, Cmd.none )
+
+        MessagesMsg _ ->
+            ( model, Cmd.none )
 
 
 focusConversation : Conversation -> Model -> Model
@@ -135,7 +140,7 @@ updateFocus (Model model) focus =
     Model { model | focus = focus }
 
 
-gotMessages : String -> WebData Messages -> Model -> Model
+gotMessages : String -> Messages.Model -> Model -> Model
 gotMessages convId messages (Model model) =
     let
         conversations =

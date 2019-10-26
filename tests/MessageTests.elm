@@ -3,7 +3,7 @@ module MessageTests exposing (suite)
 import Conversation exposing (Conversation)
 import Expect exposing (Expectation)
 import Json.Decode as D
-import Messages exposing (Message, Messages)
+import Messages
 import RemoteData exposing (RemoteData(..), WebData)
 import Task
 import Test exposing (..)

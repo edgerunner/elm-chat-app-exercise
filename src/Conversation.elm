@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Json.Decode as D
-import Messages exposing (Messages, get)
+import Messages
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, red, white)
 import User exposing (User, userLabel)
@@ -17,7 +17,7 @@ type alias Conversation =
     { id : String
     , with : String
     , unread : Int
-    , messages : WebData Messages
+    , messages : Messages.Model
     }
 
 
