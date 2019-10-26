@@ -28,12 +28,19 @@ get =
 
 decoder : D.Decoder (List Conversation)
 decoder =
-    D.map4 Conversation
-        (D.field "id" D.string)
-        (D.field "with_user_id" D.string)
-        (D.field "unread_message_count" D.int)
-        (D.succeed RemoteData.NotAsked)
-        |> D.list
+    let
+        specificIdDecoder id =
+            D.map4 Conversation
+                (D.succeed id)
+                (D.field "with_user_id" D.string)
+                (D.field "unread_message_count" D.int)
+                (D.succeed <| Messages.init id )
+                |> D.list
+
+    in
+        D.field "id" D.string
+            |> D.andThen specificIdDecoder
+    
 
 
 convListing : Conversation -> User -> Element msg

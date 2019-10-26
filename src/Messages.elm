@@ -1,4 +1,4 @@
-module Messages exposing (Model, Msg, decoder, get)
+module Messages exposing (Model, Msg, decoder, get, init, update)
 
 import Api
 import Iso8601
@@ -17,8 +17,13 @@ type alias Message =
     }
 
 
-type alias Model =
-    WebData Messages
+type Model
+    = Model Id (WebData Messages)
+
+
+init : Id -> Model
+init id =
+    Model id RemoteData.NotAsked
 
 
 type alias Messages =
@@ -30,7 +35,7 @@ type alias Id =
 
 
 type Msg
-    = GotMessages Id Model
+    = GotMessages Model
 
 
 get : Id -> Cmd Msg
@@ -39,7 +44,7 @@ get convId =
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder (GotMessages convId)
+    Api.get path decoder (GotMessages << Model convId)
 
 
 
@@ -61,3 +66,14 @@ decoder =
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
         |> D.list
+
+
+
+-- UPDATE
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        GotMessages gotModel ->
+            ( gotModel, Cmd.none )
