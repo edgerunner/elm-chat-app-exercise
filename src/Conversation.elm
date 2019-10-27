@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Msg, get, getMessages, listing, update)
+module Conversation exposing (Conversation, Msg, get, getMessages, listing, update, view)
 
 import Api
 import Element exposing (..)
@@ -107,3 +107,8 @@ updateMessagesFor conv msg list =
         |> List.unzip
         |> Tuple.mapSecond Cmd.batch
         |> Tuple.mapSecond (Cmd.map (MessagesMsg conv))
+
+
+view : Conversation -> Element msg
+view conv =
+    Messages.view conv.messages

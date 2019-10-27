@@ -1,6 +1,7 @@
-module Messages exposing (Model, Msg, decoder, get, init, update)
+module Messages exposing (Model, Msg, decoder, get, init, update, view)
 
 import Api
+import Element exposing (..)
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -77,3 +78,31 @@ update msg model =
     case msg of
         GotMessages newModel ->
             ( newModel, Cmd.none )
+
+
+
+-- VIEW
+
+
+view : Model -> Element msg
+view (Model model) =
+    case model of
+        RemoteData.Success messages ->
+            list messages
+
+        _ ->
+            Element.none
+
+
+list : Messages -> Element msg
+list messages =
+    column []
+        (List.map
+            listing
+            messages
+        )
+
+
+listing : Message -> Element msg
+listing message =
+    el [] (text message.body)

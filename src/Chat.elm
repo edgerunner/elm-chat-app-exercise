@@ -232,10 +232,22 @@ convList (Model model) =
 
 conversationView : Model -> Element Msg
 conversationView (Model model) =
-    paragraph
+    let
+        convViev =
+            case model.focus of
+                FullView (Just conv) ->
+                    Conversation.view conv
+
+                ConversationView conv ->
+                    Conversation.view conv
+
+                _ ->
+                    Element.none
+    in
+    el
         [ width fill
         , height fill
         , Background.color gray
         , Events.onClick BlurConversation
         ]
-        [ text (Debug.toString model.focus) ]
+        convViev
