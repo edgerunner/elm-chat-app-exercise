@@ -18,12 +18,12 @@ type alias Message =
 
 
 type Model
-    = Model Id (WebData Messages)
+    = Model (WebData Messages)
 
 
-init : Id -> Model
-init id =
-    Model id RemoteData.NotAsked
+init : Model
+init =
+    Model RemoteData.NotAsked
 
 
 type alias Messages =
@@ -44,7 +44,7 @@ get convId =
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder (GotMessages << Model convId)
+    Api.get path decoder (GotMessages << Model)
 
 
 
@@ -75,5 +75,5 @@ decoder =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotMessages gotModel ->
-            ( gotModel, Cmd.none )
+        GotMessages newModel ->
+            ( newModel, Cmd.none )

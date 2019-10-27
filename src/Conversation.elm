@@ -28,19 +28,12 @@ get =
 
 decoder : D.Decoder (List Conversation)
 decoder =
-    let
-        specificIdDecoder id =
-            D.map4 Conversation
-                (D.succeed id)
-                (D.field "with_user_id" D.string)
-                (D.field "unread_message_count" D.int)
-                (D.succeed <| Messages.init id )
-                |> D.list
-
-    in
-        D.field "id" D.string
-            |> D.andThen specificIdDecoder
-    
+    D.map4 Conversation
+        (D.field "id" D.string)
+        (D.field "with_user_id" D.string)
+        (D.field "unread_message_count" D.int)
+        (D.succeed Messages.init)
+        |> D.list
 
 
 convListing : Conversation -> User -> Element msg
@@ -77,3 +70,40 @@ unreadBadge count =
                     , padding (em 0.25)
                     , Font.center
                     ]
+
+
+type Msg
+    = MessagesMsg Conversation Messages.Msg
+
+
+getMessages : Conversation -> Cmd Msg
+getMessages conv =
+    Messages.get conv.id
+        |> Cmd.map (MessagesMsg conv)
+
+
+update : Msg -> List Conversation -> ( List Conversation, Cmd Msg )
+update msg list =
+    case msg of
+        MessagesMsg conv messageMsg ->
+            updateMessagesFor conv messageMsg list
+
+
+updateMessagesFor : Conversation -> Messages.Msg -> List Conversation -> ( List Conversation, Cmd Msg )
+updateMessagesFor conv msg list =
+    List.map
+        (\c ->
+            if c == conv then
+                let
+                    ( messages, cmd ) =
+                        Messages.update msg conv.messages
+                in
+                ( { conv | messages = messages }, cmd )
+
+            else
+                ( c, Cmd.none )
+        )
+        list
+        |> List.unzip
+        |> Tuple.mapSecond Cmd.batch
+        |> Tuple.mapSecond (Cmd.map (MessagesMsg conv))

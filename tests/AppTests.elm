@@ -87,7 +87,7 @@ suite =
                             [ User.User "1" "Vehbi" "john.png" ]
 
                         conversations =
-                            [ Conversation.Conversation "1" "1" 1837 (Messages.init "1") ]
+                            [ Conversation.Conversation "1" "1" 1837 Messages.init ]
 
                         chat =
                             Chat.init users conversations
