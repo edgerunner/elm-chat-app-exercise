@@ -189,7 +189,8 @@ fullView model =
         [ width fill
         , height fill
         ]
-        [ listView model
+        [ el [ width (maximum (em 12) fill), alignTop ] (listView model)
+        , el [ width (eml 1), height fill, Background.color gray ] none
         , conversationView model
         ]
 
@@ -251,7 +252,6 @@ conversationView (Model model) =
     el
         [ width fill
         , height fill
-        , Background.color gray
         , Events.onClick BlurConversation
         ]
         convViev
