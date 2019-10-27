@@ -1,9 +1,15 @@
-module Messages exposing (Model, Msg, decoder, get, init, update)
+module Messages exposing (Model, Msg, decoder, get, init, update, view)
 
 import Api
+import Element exposing (..)
+import Element.Background as Background
+import Element.Border as Border
+import Element.Events as Events
+import Element.Font as Font
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
+import Styles exposing (..)
 import Time exposing (Posix)
 import User exposing (User)
 
@@ -77,3 +83,44 @@ update msg model =
     case msg of
         GotMessages newModel ->
             ( newModel, Cmd.none )
+
+
+
+-- VIEW
+
+
+view : Model -> Element msg
+view (Model model) =
+    case model of
+        RemoteData.Success messages ->
+            list messages
+
+        RemoteData.Failure error ->
+            el
+                [ Font.color red
+                , padding (em 1)
+                , centerX
+                , centerY
+                ]
+                (text <| Debug.toString error)
+
+        _ ->
+            el
+                [ centerX
+                , centerY
+                ]
+                (text "Loading")
+
+
+list : Messages -> Element msg
+list messages =
+    column []
+        (List.map
+            listing
+            messages
+        )
+
+
+listing : Message -> Element msg
+listing message =
+    el [] (text message.body)

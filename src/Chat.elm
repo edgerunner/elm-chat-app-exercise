@@ -189,7 +189,8 @@ fullView model =
         [ width fill
         , height fill
         ]
-        [ listView model
+        [ el [ width (maximum (em 12) fill), alignTop ] (listView model)
+        , el [ width (eml 1), height fill, Background.color gray ] none
         , conversationView model
         ]
 
@@ -202,6 +203,20 @@ listView model =
         ]
         [ convList model
         ]
+
+
+selectionAttributes : Conversation -> Focus -> List (Element.Attribute msg)
+selectionAttributes conv focus =
+    case focus of
+        FullView (Just current) ->
+            if current == conv then
+                [ Background.color gray ]
+
+            else
+                []
+
+        _ ->
+            []
 
 
 convList : Model -> Element Msg
@@ -219,9 +234,11 @@ convList (Model model) =
 
                     listing justUser =
                         el
-                            [ Events.onClick (FocusConversation conv)
-                            , width fill
-                            ]
+                            ([ Events.onClick (FocusConversation conv)
+                             , width fill
+                             ]
+                                ++ selectionAttributes conv model.focus
+                            )
                             (Conversation.listing conv justUser)
                 in
                 Maybe.map listing user
@@ -232,10 +249,25 @@ convList (Model model) =
 
 conversationView : Model -> Element Msg
 conversationView (Model model) =
-    paragraph
+    let
+        convViev =
+            case model.focus of
+                FullView (Just conv) ->
+                    Conversation.view conv
+
+                ConversationView conv ->
+                    Conversation.view conv
+
+                _ ->
+                    el
+                        [ centerX
+                        , centerY
+                        ]
+                        (text "Select conversation")
+    in
+    el
         [ width fill
         , height fill
-        , Background.color gray
         , Events.onClick BlurConversation
         ]
-        [ text (Debug.toString model.focus) ]
+        convViev
