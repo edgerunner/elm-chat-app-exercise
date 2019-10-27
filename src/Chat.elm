@@ -242,7 +242,11 @@ conversationView (Model model) =
                     Conversation.view conv
 
                 _ ->
-                    Element.none
+                    el
+                        [ centerX
+                        , centerY
+                        ]
+                        (text "Select conversation")
     in
     el
         [ width fill
