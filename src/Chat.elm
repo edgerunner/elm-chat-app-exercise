@@ -205,6 +205,20 @@ listView model =
         ]
 
 
+selectionAttributes : Conversation -> Focus -> List (Element.Attribute msg)
+selectionAttributes conv focus =
+    case focus of
+        FullView (Just current) ->
+            if current == conv then
+                [ Background.color gray ]
+
+            else
+                []
+
+        _ ->
+            []
+
+
 convList : Model -> Element Msg
 convList (Model model) =
     column
@@ -220,9 +234,11 @@ convList (Model model) =
 
                     listing justUser =
                         el
-                            [ Events.onClick (FocusConversation conv)
-                            , width fill
-                            ]
+                            ([ Events.onClick (FocusConversation conv)
+                             , width fill
+                             ]
+                                ++ selectionAttributes conv model.focus
+                            )
                             (Conversation.listing conv justUser)
                 in
                 Maybe.map listing user
