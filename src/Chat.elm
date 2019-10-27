@@ -138,10 +138,31 @@ updateFocus (Model model) focus =
 conversationMsg : Conversation.Msg -> Model -> ( Model, Cmd Msg )
 conversationMsg msg (Model model) =
     let
+        updateThis =
+            Conversation.update msg
+
         ( conversations, cmd ) =
-            Conversation.update msg model.conversations
+            updateThis model.conversations
+
+        focus =
+            case model.focus of
+                FullView (Just conv) ->
+                    updateThis [ conv ]
+                        |> Tuple.first
+                        |> List.head
+                        |> FullView
+
+                ConversationView conv ->
+                    updateThis [ conv ]
+                        |> Tuple.first
+                        |> List.head
+                        |> Maybe.withDefault conv
+                        |> ConversationView
+
+                _ ->
+                    model.focus
     in
-    ( Model { model | conversations = conversations }, Cmd.map ConversationMsg cmd )
+    ( Model { model | conversations = conversations, focus = focus }, Cmd.map ConversationMsg cmd )
 
 
 subscriptions : Model -> Sub Msg
