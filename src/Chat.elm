@@ -2,7 +2,7 @@ module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser.Dom
 import Browser.Events
-import Conversation exposing (Conversation, convListing)
+import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
@@ -222,7 +222,7 @@ convList (Model model) =
                             [ Events.onClick (FocusConversation conv)
                             , width fill
                             ]
-                            (convListing conv justUser)
+                            (Conversation.listing conv justUser)
                 in
                 Maybe.map listing user
             )

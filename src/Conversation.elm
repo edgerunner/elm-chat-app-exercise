@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Msg, convListing, get, getMessages, update)
+module Conversation exposing (Conversation, Msg, get, getMessages, listing, update)
 
 import Api
 import Element exposing (..)
@@ -36,8 +36,8 @@ decoder =
         |> D.list
 
 
-convListing : Conversation -> User -> Element msg
-convListing conv user =
+listing : Conversation -> User -> Element msg
+listing conv user =
     row
         [ width fill
         , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
