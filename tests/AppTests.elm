@@ -6,6 +6,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import Html.Attributes as Attr
 import Main exposing (update)
+import Messages
 import RemoteData exposing (RemoteData(..), WebData)
 import Test exposing (..)
 import Test.Html.Query as Query
@@ -86,7 +87,7 @@ suite =
                             [ User.User "1" "Vehbi" "john.png" ]
 
                         conversations =
-                            [ Conversation.Conversation "1" "1" 1837 RemoteData.NotAsked ]
+                            [ Conversation.Conversation "1" "1" 1837 Messages.init ]
 
                         chat =
                             Chat.init users conversations

@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, convListing, get)
+module Conversation exposing (Conversation, Msg, get, getMessages, listing, update)
 
 import Api
 import Element exposing (..)
@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Json.Decode as D
-import Messages exposing (Messages, get)
+import Messages
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, red, white)
 import User exposing (User, userLabel)
@@ -17,7 +17,7 @@ type alias Conversation =
     { id : String
     , with : String
     , unread : Int
-    , messages : WebData Messages
+    , messages : Messages.Model
     }
 
 
@@ -32,12 +32,12 @@ decoder =
         (D.field "id" D.string)
         (D.field "with_user_id" D.string)
         (D.field "unread_message_count" D.int)
-        (D.succeed RemoteData.NotAsked)
+        (D.succeed Messages.init)
         |> D.list
 
 
-convListing : Conversation -> User -> Element msg
-convListing conv user =
+listing : Conversation -> User -> Element msg
+listing conv user =
     row
         [ width fill
         , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
@@ -70,3 +70,40 @@ unreadBadge count =
                     , padding (em 0.25)
                     , Font.center
                     ]
+
+
+type Msg
+    = MessagesMsg Conversation Messages.Msg
+
+
+getMessages : Conversation -> Cmd Msg
+getMessages conv =
+    Messages.get conv.id
+        |> Cmd.map (MessagesMsg conv)
+
+
+update : Msg -> List Conversation -> ( List Conversation, Cmd Msg )
+update msg list =
+    case msg of
+        MessagesMsg conv messageMsg ->
+            updateMessagesFor conv messageMsg list
+
+
+updateMessagesFor : Conversation -> Messages.Msg -> List Conversation -> ( List Conversation, Cmd Msg )
+updateMessagesFor conv msg list =
+    List.map
+        (\c ->
+            if c == conv then
+                let
+                    ( messages, cmd ) =
+                        Messages.update msg conv.messages
+                in
+                ( { conv | messages = messages }, cmd )
+
+            else
+                ( c, Cmd.none )
+        )
+        list
+        |> List.unzip
+        |> Tuple.mapSecond Cmd.batch
+        |> Tuple.mapSecond (Cmd.map (MessagesMsg conv))

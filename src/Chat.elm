@@ -2,14 +2,13 @@ module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser.Dom
 import Browser.Events
-import Conversation exposing (Conversation, convListing)
+import Conversation exposing (Conversation)
 import Dict exposing (Dict)
 import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import Messages exposing (Messages)
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray)
 import Task
@@ -37,7 +36,7 @@ type Msg
     | BlurConversation
     | WindowResize Int Int
     | WindowInitialize Browser.Dom.Viewport
-    | GotMessages String (WebData Messages)
+    | ConversationMsg Conversation.Msg
 
 
 type Focus
@@ -62,7 +61,8 @@ update msg model =
     case msg of
         FocusConversation conv ->
             ( focusConversation conv model
-            , Messages.get conv.id (GotMessages conv.id)
+            , Conversation.getMessages conv
+                |> Cmd.map ConversationMsg
             )
 
         BlurConversation ->
@@ -74,8 +74,8 @@ update msg model =
         WindowInitialize window ->
             ( windowResize (truncate window.viewport.width) model, Cmd.none )
 
-        GotMessages convId messages ->
-            ( gotMessages convId messages model, Cmd.none )
+        ConversationMsg cMsg ->
+            conversationMsg cMsg model
 
 
 focusConversation : Conversation -> Model -> Model
@@ -135,32 +135,34 @@ updateFocus (Model model) focus =
     Model { model | focus = focus }
 
 
-gotMessages : String -> WebData Messages -> Model -> Model
-gotMessages convId messages (Model model) =
+conversationMsg : Conversation.Msg -> Model -> ( Model, Cmd Msg )
+conversationMsg msg (Model model) =
     let
-        conversations =
-            List.map
-                (\conv ->
-                    if conv.id == convId then
-                        { conv | messages = messages }
+        updateThis =
+            Conversation.update msg
 
-                    else
-                        conv
-                )
-                model.conversations
+        ( conversations, cmd ) =
+            updateThis model.conversations
 
         focus =
             case model.focus of
-                ConversationView conv ->
-                    ConversationView { conv | messages = messages }
-
                 FullView (Just conv) ->
-                    FullView (Just { conv | messages = messages })
+                    updateThis [ conv ]
+                        |> Tuple.first
+                        |> List.head
+                        |> FullView
 
-                other ->
-                    other
+                ConversationView conv ->
+                    updateThis [ conv ]
+                        |> Tuple.first
+                        |> List.head
+                        |> Maybe.withDefault conv
+                        |> ConversationView
+
+                _ ->
+                    model.focus
     in
-    Model { model | conversations = conversations, focus = focus }
+    ( Model { model | conversations = conversations, focus = focus }, Cmd.map ConversationMsg cmd )
 
 
 subscriptions : Model -> Sub Msg
@@ -220,7 +222,7 @@ convList (Model model) =
                             [ Events.onClick (FocusConversation conv)
                             , width fill
                             ]
-                            (convListing conv justUser)
+                            (Conversation.listing conv justUser)
                 in
                 Maybe.map listing user
             )
