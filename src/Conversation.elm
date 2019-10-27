@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, convListing, get)
+module Conversation exposing (Conversation, Msg, convListing, get, getMessages, update)
 
 import Api
 import Element exposing (..)

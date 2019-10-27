@@ -9,7 +9,6 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import Messages
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray)
 import Task
@@ -37,8 +36,7 @@ type Msg
     | BlurConversation
     | WindowResize Int Int
     | WindowInitialize Browser.Dom.Viewport
-    | GotMessages String Messages.Model
-    | MessagesMsg Messages.Msg
+    | ConversationMsg Conversation.Msg
 
 
 type Focus
@@ -63,8 +61,8 @@ update msg model =
     case msg of
         FocusConversation conv ->
             ( focusConversation conv model
-            , Messages.get conv.id
-                |> Cmd.map MessagesMsg
+            , Conversation.getMessages conv
+                |> Cmd.map ConversationMsg
             )
 
         BlurConversation ->
@@ -76,11 +74,8 @@ update msg model =
         WindowInitialize window ->
             ( windowResize (truncate window.viewport.width) model, Cmd.none )
 
-        GotMessages convId messages ->
-            ( gotMessages convId messages model, Cmd.none )
-
-        MessagesMsg _ ->
-            ( model, Cmd.none )
+        ConversationMsg cMsg ->
+            conversationMsg cMsg model
 
 
 focusConversation : Conversation -> Model -> Model
@@ -140,32 +135,13 @@ updateFocus (Model model) focus =
     Model { model | focus = focus }
 
 
-gotMessages : String -> Messages.Model -> Model -> Model
-gotMessages convId messages (Model model) =
+conversationMsg : Conversation.Msg -> Model -> ( Model, Cmd Msg )
+conversationMsg msg (Model model) =
     let
-        conversations =
-            List.map
-                (\conv ->
-                    if conv.id == convId then
-                        { conv | messages = messages }
-
-                    else
-                        conv
-                )
-                model.conversations
-
-        focus =
-            case model.focus of
-                ConversationView conv ->
-                    ConversationView { conv | messages = messages }
-
-                FullView (Just conv) ->
-                    FullView (Just { conv | messages = messages })
-
-                other ->
-                    other
+        ( conversations, cmd ) =
+            Conversation.update msg model.conversations
     in
-    Model { model | conversations = conversations, focus = focus }
+    ( Model { model | conversations = conversations }, Cmd.map ConversationMsg cmd )
 
 
 subscriptions : Model -> Sub Msg
