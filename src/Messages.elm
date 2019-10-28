@@ -15,9 +15,9 @@ import User exposing (User)
 
 
 type alias Message =
-    { id : String
-    , from : String
-    , conversation : String
+    { id : Id
+    , from : Id
+    , conversation : Id
     , body : String
     , time : Posix
     }
