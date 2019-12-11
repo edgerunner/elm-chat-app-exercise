@@ -1,11 +1,10 @@
-module Main exposing (LoadingModel, Model(..), Msg(..), init, subscriptions, update, view)
+module Main exposing (LoadingModel, Model(..), Msg(..), init, main, subscriptions, update, view)
 
 import Browser
 import Chat
 import Conversation exposing (Conversation)
-import Dict exposing (Dict)
 import Element exposing (layout)
-import Html exposing (..)
+import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData, append)
 import User exposing (User)
@@ -30,13 +29,6 @@ type Model
 type alias LoadingModel =
     { users : WebData (List User)
     , conversations : WebData (List Conversation)
-    }
-
-
-type alias Message =
-    { id : Int
-    , text : String
-    , from : Int
     }
 
 
@@ -76,7 +68,7 @@ dataCheck lModel =
         Loading ->
             noop <| AppLoading lModel
 
-        Failure error ->
+        Failure _ ->
             noop <| AppLoadingError "Loading error"
 
 

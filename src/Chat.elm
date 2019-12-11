@@ -4,15 +4,12 @@ import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
-import Element exposing (..)
+import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, maximum, none, row, shrink, text, width)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Events as Events
-import Element.Font as Font
-import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray)
 import Task
-import User exposing (User, userLabel)
+import User exposing (User)
 
 
 type Model

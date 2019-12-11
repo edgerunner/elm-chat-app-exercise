@@ -1,10 +1,9 @@
 module Conversation exposing (Conversation, Msg, get, getMessages, listing, update, view)
 
 import Api
-import Element exposing (..)
+import Element exposing (Element, el, fill, height, minimum, padding, paddingXY, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events as Events
 import Element.Font as Font
 import Json.Decode as D
 import Messages

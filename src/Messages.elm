@@ -1,17 +1,13 @@
 module Messages exposing (Model, Msg, decoder, get, init, update, view)
 
 import Api
-import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Events as Events
+import Element exposing (Element, padding, centerX, centerY, el, text, column)
 import Element.Font as Font
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
-import Styles exposing (..)
+import Styles exposing (red, em)
 import Time exposing (Posix)
-import User exposing (User)
 
 
 type alias Message =
@@ -79,7 +75,7 @@ decoder =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg _ =
     case msg of
         GotMessages newModel ->
             ( newModel, Cmd.none )

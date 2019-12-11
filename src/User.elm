@@ -1,7 +1,7 @@
 module User exposing (User, get, userLabel)
 
 import Api
-import Element exposing (..)
+import Element exposing (Element, width, row, fill, height, centerY, spacing, clip)
 import Element.Border as Border
 import Json.Decode as D
 import RemoteData exposing (WebData)
