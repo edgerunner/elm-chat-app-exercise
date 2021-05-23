@@ -4,10 +4,10 @@ import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation)
 import Dict exposing (Dict)
-import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, maximum, none, row, shrink, text, width)
+import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Events as Events
-import Styles exposing (em, eml, gray)
+import Styles exposing (blue, em, gray)
 import Task
 import User exposing (User)
 
@@ -185,10 +185,22 @@ fullView model =
     row
         [ width fill
         , height fill
+        , spacing (em 1)
+        , padding (em 1)
+        , Background.color gray
         ]
-        [ el [ width (maximum (em 12) fill), alignTop ] (listView model)
-        , el [ width (eml 1), height fill, Background.color gray ] none
-        , conversationView model
+        [ fullViewBlock shrink (listView model)
+        , fullViewBlock fill (conversationView model)
+        ]
+
+
+fullViewBlock : Element.Length -> Element Msg -> Element Msg
+fullViewBlock w =
+    el
+        [ alignTop
+        , Background.color Styles.white
+        , height fill
+        , width w
         ]
 
 
@@ -207,7 +219,7 @@ selectionAttributes conv focus =
     case focus of
         FullView (Just current) ->
             if current == conv then
-                [ Background.color gray ]
+                [ Background.color blue ]
 
             else
                 []
@@ -233,6 +245,7 @@ convList (Model model) =
                         el
                             ([ Events.onClick (FocusConversation conv)
                              , width fill
+                             , pointer
                              ]
                                 ++ selectionAttributes conv model.focus
                             )

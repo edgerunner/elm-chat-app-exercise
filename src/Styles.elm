@@ -1,4 +1,4 @@
-module Styles exposing (em, eml, gray, red, white)
+module Styles exposing (blue, em, eml, gray, red, white)
 
 import Element exposing (Color, Length, px, rgb255)
 
@@ -11,6 +11,11 @@ white =
 gray : Color
 gray =
     rgb255 192 192 192
+
+
+blue : Color
+blue =
+    rgb255 216 232 240
 
 
 red : Color

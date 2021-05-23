@@ -8,7 +8,7 @@ import Element.Font as Font
 import Json.Decode as D
 import Messages
 import RemoteData exposing (WebData)
-import Styles exposing (em, eml, red, white)
+import Styles exposing (em, eml, gray, red, white)
 import User exposing (User, userLabel)
 
 
@@ -39,7 +39,8 @@ listing : Conversation -> User -> Element msg
 listing conv user =
     row
         [ width fill
-        , Border.widthEach { bottom = 1, top = 0, left = 0, right = 0 }
+        , Border.widthEach { bottom = 2, top = 0, left = 0, right = 0 }
+        , Border.color gray
         , spacing (em 1)
         , paddingXY (em 0.25) 0
         ]

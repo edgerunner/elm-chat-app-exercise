@@ -1,12 +1,12 @@
 module Messages exposing (Model, Msg, decoder, get, init, update, view)
 
 import Api
-import Element exposing (Element, padding, centerX, centerY, el, text, column)
+import Element exposing (Element, centerX, centerY, column, el, padding, spacing, text)
 import Element.Font as Font
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
-import Styles exposing (red, em)
+import Styles exposing (em, red)
 import Time exposing (Posix)
 
 
@@ -110,7 +110,7 @@ view (Model model) =
 
 list : Messages -> Element msg
 list messages =
-    column []
+    column [ padding <| em 1, spacing <| em 0.5 ]
         (List.map
             listing
             messages
