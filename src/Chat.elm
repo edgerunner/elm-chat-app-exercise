@@ -42,10 +42,10 @@ type Focus
     | ConversationView Conversation
 
 
-init : List User -> List Conversation -> ( Model, Cmd Msg )
+init : Dict String User -> List Conversation -> ( Model, Cmd Msg )
 init users conversations =
     ( Model
-        { users = List.foldl (\user -> Dict.insert user.id user) Dict.empty users
+        { users = users
         , conversations = conversations
         , focus = ListView
         }
