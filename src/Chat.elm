@@ -55,6 +55,10 @@ init users conversations =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        only transform =
+            ( transform model, Cmd.none )
+    in
     case msg of
         FocusConversation conv ->
             ( focusConversation conv model
@@ -62,21 +66,19 @@ update msg model =
             )
 
         BlurConversation ->
-            ( blurConversation model, Cmd.none )
+            only blurConversation
 
         WindowResize width _ ->
-            ( windowResize width model, Cmd.none )
+            only <| windowResize width
 
         WindowInitialize window ->
-            ( windowResize (truncate window.viewport.width) model, Cmd.none )
+            only <| windowResize (truncate window.viewport.width)
 
         GotMessages conversation ->
-            ( (replaceConversation conversation
-                >> focusConversation conversation
-              )
-                model
-            , Cmd.none
-            )
+            only
+                (replaceConversation conversation
+                    >> focusConversation conversation
+                )
 
 
 replaceConversation : Conversation -> Model -> Model
