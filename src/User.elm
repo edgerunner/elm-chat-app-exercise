@@ -1,7 +1,7 @@
-module User exposing (User, get, userLabel)
+module User exposing (User, avatar, get, label)
 
 import Api
-import Element exposing (Element, width, row, fill, height, centerY, spacing, clip)
+import Element exposing (Element, centerY, clip, fill, height, row, spacing, width)
 import Element.Border as Border
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -29,20 +29,25 @@ decoder =
         |> D.list
 
 
-userLabel : User -> Element msg
-userLabel user =
+label : User -> Element msg
+label user =
     row
         [ width fill
         , height (eml 3)
         , centerY
         , spacing (em 0.5)
         ]
-        [ Element.image
-            [ height (eml 2.4)
-            , width (eml 2.4)
-            , Border.rounded (em 1.2)
-            , clip
-            ]
-            { src = user.avatar, description = user.name }
+        [ avatar 2.4 user
         , Element.text user.name
         ]
+
+
+avatar : Float -> User -> Element msg
+avatar size user =
+    Element.image
+        [ height (eml size)
+        , width (eml size)
+        , Border.rounded (em <| size / 2)
+        , clip
+        ]
+        { src = user.avatar, description = user.name }

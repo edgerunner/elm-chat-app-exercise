@@ -9,7 +9,7 @@ import Json.Decode as D
 import Messages
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray, red, white)
-import User exposing (User, userLabel)
+import User exposing (User)
 
 
 type alias Conversation =
@@ -44,7 +44,7 @@ listing conv user =
         , spacing (em 1)
         , paddingXY (em 0.25) 0
         ]
-        [ userLabel user
+        [ User.label user
         , unreadBadge conv.unread
         , text "❯"
         ]
