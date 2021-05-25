@@ -36,13 +36,13 @@ type alias Id =
     String
 
 
-get : (Model -> msg) -> Id -> Cmd msg
-get msg convId =
+get : Id -> Cmd Model
+get convId =
     let
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder (msg << Model)
+    Api.get path decoder Model
 
 
 decoder : D.Decoder Messages

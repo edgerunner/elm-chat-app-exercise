@@ -33,7 +33,7 @@ type Msg
     | BlurConversation
     | WindowResize Int Int
     | WindowInitialize Browser.Dom.Viewport
-    | ConversationMsg Conversation.Msg
+    | GotMessages Conversation
 
 
 type Focus
@@ -58,8 +58,7 @@ update msg model =
     case msg of
         FocusConversation conv ->
             ( focusConversation conv model
-            , Conversation.getMessages conv
-                |> Cmd.map ConversationMsg
+            , Conversation.getMessages GotMessages conv
             )
 
         BlurConversation ->
@@ -71,8 +70,30 @@ update msg model =
         WindowInitialize window ->
             ( windowResize (truncate window.viewport.width) model, Cmd.none )
 
-        ConversationMsg cMsg ->
-            conversationMsg cMsg model
+        GotMessages conversation ->
+            ( (replaceConversation conversation
+                >> focusConversation conversation
+              )
+                model
+            , Cmd.none
+            )
+
+
+replaceConversation : Conversation -> Model -> Model
+replaceConversation conversation (Model model) =
+    let
+        conversations =
+            model.conversations
+                |> List.map
+                    (\conv ->
+                        if conv.id == conversation.id then
+                            conversation
+
+                        else
+                            conv
+                    )
+    in
+    Model { model | conversations = conversations }
 
 
 focusConversation : Conversation -> Model -> Model
@@ -130,36 +151,6 @@ windowResize width model =
 updateFocus : Model -> Focus -> Model
 updateFocus (Model model) focus =
     Model { model | focus = focus }
-
-
-conversationMsg : Conversation.Msg -> Model -> ( Model, Cmd Msg )
-conversationMsg msg (Model model) =
-    let
-        updateThis =
-            Conversation.update msg
-
-        ( conversations, cmd ) =
-            updateThis model.conversations
-
-        focus =
-            case model.focus of
-                FullView (Just conv) ->
-                    updateThis [ conv ]
-                        |> Tuple.first
-                        |> List.head
-                        |> FullView
-
-                ConversationView conv ->
-                    updateThis [ conv ]
-                        |> Tuple.first
-                        |> List.head
-                        |> Maybe.withDefault conv
-                        |> ConversationView
-
-                _ ->
-                    model.focus
-    in
-    ( Model { model | conversations = conversations, focus = focus }, Cmd.map ConversationMsg cmd )
 
 
 subscriptions : Model -> Sub Msg

@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Msg, get, getMessages, listing, update, view)
+module Conversation exposing (Conversation, get, getMessages, listing, view)
 
 import Api
 import Element exposing (Element, el, fill, height, minimum, padding, paddingXY, row, shrink, spacing, text, width)
@@ -7,6 +7,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Json.Decode as D
 import Messages
+import Platform.Cmd exposing (Cmd)
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray, red, white)
 import User exposing (User)
@@ -72,27 +73,10 @@ unreadBadge count =
                     ]
 
 
-type Msg
-    = GotMessages Conversation Messages.Model
-
-
-getMessages : Conversation -> Cmd Msg
-getMessages conv =
-    Messages.get (GotMessages conv) conv.id
-
-
-update : Msg -> List Conversation -> ( List Conversation, Cmd Msg )
-update (GotMessages conv messages) =
-    List.map
-        (\c ->
-            if c == conv then
-                { conv | messages = messages }
-
-            else
-                c
-        )
-        >> Tuple.pair
-        >> (|>) Cmd.none
+getMessages : (Conversation -> msg) -> Conversation -> Cmd msg
+getMessages msg conv =
+    Messages.get conv.id
+        |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
 
 
 view : Conversation -> Element msg
