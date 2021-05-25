@@ -1,4 +1,4 @@
-module Messages exposing (Model, Msg, decoder, get, init, update, view)
+module Messages exposing (Model, decoder, get, init, view)
 
 import Api
 import Element exposing (Element, centerX, centerY, column, el, padding, spacing, text)
@@ -36,27 +36,13 @@ type alias Id =
     String
 
 
-type Msg
-    = GotMessages Model
-
-
-get : Id -> Cmd Msg
-get convId =
+get : (Model -> msg) -> Id -> Cmd msg
+get msg convId =
     let
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder (GotMessages << Model)
-
-
-
-{- // sample JSON object
-   "id": "7",
-   "conversation_id": "3",
-   "body": "Waddap!",
-   "from_user_id": "4",
-   "created_at": "2016-08-23T10:14:00.670Z"
--}
+    Api.get path decoder (msg << Model)
 
 
 decoder : D.Decoder Messages
@@ -68,17 +54,6 @@ decoder =
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
         |> D.list
-
-
-
--- UPDATE
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg _ =
-    case msg of
-        GotMessages newModel ->
-            ( newModel, Cmd.none )
 
 
 

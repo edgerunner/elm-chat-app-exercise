@@ -73,40 +73,26 @@ unreadBadge count =
 
 
 type Msg
-    = MessagesMsg Conversation Messages.Msg
+    = GotMessages Conversation Messages.Model
 
 
 getMessages : Conversation -> Cmd Msg
 getMessages conv =
-    Messages.get conv.id
-        |> Cmd.map (MessagesMsg conv)
+    Messages.get (GotMessages conv) conv.id
 
 
 update : Msg -> List Conversation -> ( List Conversation, Cmd Msg )
-update msg list =
-    case msg of
-        MessagesMsg conv messageMsg ->
-            updateMessagesFor conv messageMsg list
-
-
-updateMessagesFor : Conversation -> Messages.Msg -> List Conversation -> ( List Conversation, Cmd Msg )
-updateMessagesFor conv msg list =
+update (GotMessages conv messages) =
     List.map
         (\c ->
             if c == conv then
-                let
-                    ( messages, cmd ) =
-                        Messages.update msg conv.messages
-                in
-                ( { conv | messages = messages }, cmd )
+                { conv | messages = messages }
 
             else
-                ( c, Cmd.none )
+                c
         )
-        list
-        |> List.unzip
-        |> Tuple.mapSecond Cmd.batch
-        |> Tuple.mapSecond (Cmd.map (MessagesMsg conv))
+        >> Tuple.pair
+        >> (|>) Cmd.none
 
 
 view : Conversation -> Element msg
