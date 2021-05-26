@@ -1,9 +1,9 @@
 module User exposing (User, avatar, get, label)
 
 import Api
-import Dict exposing (Dict)
 import Element exposing (Element, centerY, clip, fill, height, row, spacing, width)
 import Element.Border as Border
+import IdDict exposing (IdDict)
 import Json.Decode as D
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml)
@@ -16,25 +16,18 @@ type alias User =
     }
 
 
-get : (WebData (Dict String User) -> msg) -> Cmd msg
+get : (WebData (IdDict User) -> msg) -> Cmd msg
 get =
     Api.get "/users" decoder
 
 
-decoder : D.Decoder (Dict String User)
+decoder : D.Decoder (IdDict User)
 decoder =
     D.map3 User
         (D.field "id" D.string)
         (D.field "username" D.string)
         (D.field "avatar_url" D.string)
-        |> D.map (extract .id)
-        |> D.list
-        |> D.map Dict.fromList
-
-
-extract : (a -> x) -> a -> ( x, a )
-extract extractor a =
-    ( extractor a, a )
+        |> IdDict.decoder
 
 
 label : User -> Element msg
