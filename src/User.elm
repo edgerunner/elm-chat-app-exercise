@@ -1,4 +1,4 @@
-module User exposing (User, avatar, get, label)
+module User exposing (User, Users, avatar, get, label)
 
 import Api
 import Element exposing (Element, centerY, clip, fill, height, row, spacing, width)
@@ -16,12 +16,16 @@ type alias User =
     }
 
 
-get : (WebData (IdDict User) -> msg) -> Cmd msg
+type alias Users =
+    IdDict User
+
+
+get : (WebData Users -> msg) -> Cmd msg
 get =
     Api.get "/users" decoder
 
 
-decoder : D.Decoder (IdDict User)
+decoder : D.Decoder Users
 decoder =
     D.map3 User
         (D.field "id" D.string)

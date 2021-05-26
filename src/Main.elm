@@ -3,12 +3,11 @@ module Main exposing (LoadingModel, Model(..), Msg(..), init, main, subscription
 import Browser
 import Chat
 import Conversation exposing (Conversations)
-import Dict exposing (Dict)
 import Element exposing (layout)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData, append)
-import User exposing (User)
+import User exposing (Users)
 
 
 main : Program () Model Msg
@@ -28,13 +27,13 @@ type Model
 
 
 type alias LoadingModel =
-    { users : WebData (Dict String User)
+    { users : WebData Users
     , conversations : WebData Conversations
     }
 
 
 type Msg
-    = GotUsers (WebData (Dict String User))
+    = GotUsers (WebData Users)
     | GotConversations (WebData Conversations)
     | ChatMsg Chat.Msg
 

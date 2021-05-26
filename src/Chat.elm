@@ -3,14 +3,14 @@ module Chat exposing (Model, Msg, init, subscriptions, update, view)
 import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation, Conversations)
-import Dict exposing (Dict)
+import Dict
 import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Events as Events
 import IdDict
 import Styles exposing (blue, em, gray)
 import Task
-import User exposing (User)
+import User exposing (Users)
 
 
 type Model
@@ -18,7 +18,7 @@ type Model
 
 
 type alias ModelRecord =
-    { users : Dict String User
+    { users : Users
     , conversations : Conversations
     , focus : Focus
     }
@@ -43,7 +43,7 @@ type Focus
     | ConversationView Conversation
 
 
-init : Dict String User -> Conversations -> ( Model, Cmd Msg )
+init : Users -> Conversations -> ( Model, Cmd Msg )
 init users conversations =
     ( Model
         { users = users
