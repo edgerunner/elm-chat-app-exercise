@@ -1,4 +1,4 @@
-module Messages exposing (Model, decoder, get, init, view)
+module Message exposing (Model, decoder, get, init, view)
 
 import Api
 import Element exposing (Element, centerX, centerY, column, el, padding, spacing, text)

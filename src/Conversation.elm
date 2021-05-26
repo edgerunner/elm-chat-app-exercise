@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Font as Font
 import IdDict exposing (Id, IdDict)
 import Json.Decode as D
-import Messages
+import Message
 import Platform.Cmd exposing (Cmd)
 import RemoteData exposing (WebData)
 import Styles exposing (em, eml, gray, red, white)
@@ -18,7 +18,7 @@ type alias Conversation =
     { id : Id
     , with : Id
     , unread : Int
-    , messages : Messages.Model
+    , messages : Message.Model
     }
 
 
@@ -37,7 +37,7 @@ decoder =
         (D.field "id" D.string)
         (D.field "with_user_id" D.string)
         (D.field "unread_message_count" D.int)
-        (D.succeed Messages.init)
+        (D.succeed Message.init)
         |> IdDict.decoder
 
 
@@ -80,10 +80,10 @@ unreadBadge count =
 
 getMessages : (Conversation -> msg) -> Conversation -> Cmd msg
 getMessages msg conv =
-    Messages.get conv.id
+    Message.get conv.id
         |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
 
 
 view : Conversation -> Element msg
 view conv =
-    Messages.view conv.messages
+    Message.view conv.messages
