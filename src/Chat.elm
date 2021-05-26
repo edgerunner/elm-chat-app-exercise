@@ -2,11 +2,12 @@ module Chat exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser.Dom
 import Browser.Events
-import Conversation exposing (Conversation)
+import Conversation exposing (Conversation, Conversations)
 import Dict exposing (Dict)
 import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Events as Events
+import IdDict
 import Styles exposing (blue, em, gray)
 import Task
 import User exposing (User)
@@ -18,7 +19,7 @@ type Model
 
 type alias ModelRecord =
     { users : Dict String User
-    , conversations : List Conversation
+    , conversations : Conversations
     , focus : Focus
     }
 
@@ -42,7 +43,7 @@ type Focus
     | ConversationView Conversation
 
 
-init : Dict String User -> List Conversation -> ( Model, Cmd Msg )
+init : Dict String User -> Conversations -> ( Model, Cmd Msg )
 init users conversations =
     ( Model
         { users = users
@@ -83,19 +84,12 @@ update msg model =
 
 replaceConversation : Conversation -> Model -> Model
 replaceConversation conversation (Model model) =
-    let
-        conversations =
-            model.conversations
-                |> List.map
-                    (\conv ->
-                        if conv.id == conversation.id then
-                            conversation
-
-                        else
-                            conv
-                    )
-    in
-    Model { model | conversations = conversations }
+    Model
+        { model
+            | conversations =
+                model.conversations
+                    |> Dict.update conversation.id (\_ -> Just conversation)
+        }
 
 
 focusConversation : Conversation -> Model -> Model
@@ -246,7 +240,7 @@ convList (Model model) =
                 in
                 Maybe.map listing user
             )
-            model.conversations
+            (model.conversations |> IdDict.toList)
         )
 
 

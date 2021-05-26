@@ -1,10 +1,11 @@
-module Conversation exposing (Conversation, get, getMessages, listing, view)
+module Conversation exposing (Conversation, Conversations, get, getMessages, listing, view)
 
 import Api
 import Element exposing (Element, el, fill, height, minimum, padding, paddingXY, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import IdDict exposing (Id, IdDict)
 import Json.Decode as D
 import Messages
 import Platform.Cmd exposing (Cmd)
@@ -14,26 +15,30 @@ import User exposing (User)
 
 
 type alias Conversation =
-    { id : String
-    , with : String
+    { id : Id
+    , with : Id
     , unread : Int
     , messages : Messages.Model
     }
 
 
-get : (WebData (List Conversation) -> msg) -> Cmd msg
+type alias Conversations =
+    IdDict Conversation
+
+
+get : (WebData Conversations -> msg) -> Cmd msg
 get =
     Api.get "/conversations" decoder
 
 
-decoder : D.Decoder (List Conversation)
+decoder : D.Decoder Conversations
 decoder =
     D.map4 Conversation
         (D.field "id" D.string)
         (D.field "with_user_id" D.string)
         (D.field "unread_message_count" D.int)
         (D.succeed Messages.init)
-        |> D.list
+        |> IdDict.decoder
 
 
 listing : Conversation -> User -> Element msg
