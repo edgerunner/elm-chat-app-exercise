@@ -7,7 +7,7 @@ import Dict
 import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Events as Events
-import IdDict
+import IdDict exposing (Id)
 import Message
 import Styles exposing (blue, em, gray)
 import Task
@@ -21,7 +21,7 @@ type Model
 type alias ModelRecord =
     { users : Users
     , conversations : Conversations
-    , focus : Maybe Conversation
+    , focus : Maybe Id
     , width : Int
     }
 
@@ -60,7 +60,7 @@ update msg model =
                     (\c ->
                         model
                             |> replaceConversation c
-                            >> focusConversation c
+                            >> focusConversation c.id
                     )
 
         BlurConversation ->
@@ -75,7 +75,7 @@ update msg model =
         GotMessages conversation ->
             only
                 (replaceConversation conversation
-                    >> focusConversation conversation
+                    >> focusConversation conversation.id
                 )
 
 
@@ -89,9 +89,9 @@ replaceConversation conversation (Model model) =
         }
 
 
-focusConversation : Conversation -> Model -> Model
-focusConversation conv (Model model) =
-    Model { model | focus = Just conv }
+focusConversation : Id -> Model -> Model
+focusConversation convId (Model model) =
+    Model { model | focus = model.conversations |> Dict.get convId |> Maybe.map .id }
 
 
 blurConversation : Model -> Model
@@ -107,6 +107,13 @@ windowResize width (Model model) =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Browser.Events.onResize WindowResize
+
+
+focusedConversation : Model -> Maybe Conversation
+focusedConversation (Model model) =
+    model.focus
+        |> Maybe.map Dict.get
+        |> Maybe.andThen ((|>) model.conversations)
 
 
 breakpoint : Int
@@ -161,18 +168,17 @@ listView model =
         ]
 
 
-selectionAttributes : Conversation -> Maybe Conversation -> List (Element.Attribute msg)
+selectionAttributes : Conversation -> Maybe Id -> List (Element.Attribute msg)
 selectionAttributes conv focus =
-    case focus of
-        Just current ->
-            if current == conv then
-                [ Background.color blue ]
+    if
+        focus
+            |> Maybe.map ((==) conv.id)
+            |> Maybe.withDefault False
+    then
+        [ Background.color blue ]
 
-            else
-                []
-
-        Nothing ->
-            []
+    else
+        []
 
 
 convList : Model -> Element Msg
@@ -205,10 +211,10 @@ convList (Model model) =
 
 
 conversationView : Model -> Element Msg
-conversationView (Model model) =
+conversationView model =
     let
         convViev =
-            case model.focus of
+            case focusedConversation model of
                 Just conv ->
                     Message.view conv.messages
 
