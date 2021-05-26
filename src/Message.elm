@@ -1,8 +1,9 @@
-module Message exposing (Model, decoder, get, init, view)
+module Message exposing (Messages, Model, decoder, get, init, view)
 
 import Api
 import Element exposing (Element, centerX, centerY, column, el, padding, spacing, text)
 import Element.Font as Font
+import IdDict exposing (IdDict)
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -29,7 +30,7 @@ init =
 
 
 type alias Messages =
-    List Message
+    IdDict Message
 
 
 type alias Id =
@@ -53,7 +54,7 @@ decoder =
         (D.field "conversation_id" D.string)
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
-        |> D.list
+        |> IdDict.decoder
 
 
 
@@ -86,9 +87,9 @@ view (Model model) =
 list : Messages -> Element msg
 list messages =
     column [ padding <| em 1, spacing <| em 0.5 ]
-        (List.map
-            listing
-            messages
+        (messages
+            |> IdDict.toList
+            |> List.map listing
         )
 
 
