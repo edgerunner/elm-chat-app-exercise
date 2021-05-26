@@ -55,7 +55,7 @@ update msg model =
     case msg of
         FocusConversation conv ->
             conv
-                |> Conversation.getMessages GotMessages
+                |> Conversation.checkAndLoad GotMessages
                 |> Tuple.mapFirst
                     (\c ->
                         model

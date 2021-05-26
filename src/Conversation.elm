@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Conversations, get, getMessages, listing)
+module Conversation exposing (Conversation, Conversations, checkAndLoad, get, listing)
 
 import Api
 import Element exposing (Element, el, fill, height, minimum, padding, paddingXY, row, shrink, spacing, text, width)
@@ -9,7 +9,7 @@ import IdDict exposing (Id, IdDict)
 import Json.Decode as D
 import Message
 import Platform.Cmd exposing (Cmd)
-import RemoteData exposing (WebData)
+import RemoteData exposing (RemoteData(..), WebData)
 import Styles exposing (em, eml, gray, red, white)
 import User exposing (User)
 
@@ -83,3 +83,19 @@ getMessages msg conv =
     Message.get conv.id
         |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
         |> Tuple.pair { conv | messages = RemoteData.Loading }
+
+
+checkAndLoad : (Conversation -> msg) -> Conversation -> ( Conversation, Cmd msg )
+checkAndLoad msg conv =
+    case conv.messages of
+        Success _ ->
+            ( conv, Cmd.none )
+
+        Loading ->
+            ( conv, Cmd.none )
+
+        NotAsked ->
+            getMessages msg conv
+
+        Failure _ ->
+            getMessages msg conv
