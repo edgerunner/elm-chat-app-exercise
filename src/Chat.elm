@@ -20,13 +20,9 @@ type Model
 type alias ModelRecord =
     { users : Users
     , conversations : Conversations
-    , focus : Focus
+    , focus : Maybe Conversation
+    , width : Int
     }
-
-
-map : (ModelRecord -> a) -> Model -> a
-map fn (Model model) =
-    fn model
 
 
 type Msg
@@ -37,18 +33,13 @@ type Msg
     | GotMessages Conversation
 
 
-type Focus
-    = FullView (Maybe Conversation)
-    | ListView
-    | ConversationView Conversation
-
-
 init : Users -> Conversations -> ( Model, Cmd Msg )
 init users conversations =
     ( Model
         { users = users
         , conversations = conversations
-        , focus = ListView
+        , focus = Nothing
+        , width = 0
         }
     , Task.perform WindowInitialize Browser.Dom.getViewport
     )
@@ -93,60 +84,18 @@ replaceConversation conversation (Model model) =
 
 
 focusConversation : Conversation -> Model -> Model
-focusConversation conv model =
-    case map .focus model of
-        ListView ->
-            updateFocus model (ConversationView conv)
-
-        FullView _ ->
-            updateFocus model (FullView (Just conv))
-
-        _ ->
-            model
+focusConversation conv (Model model) =
+    Model { model | focus = Just conv }
 
 
 blurConversation : Model -> Model
-blurConversation model =
-    case map .focus model of
-        ConversationView _ ->
-            updateFocus model ListView
-
-        _ ->
-            model
+blurConversation (Model model) =
+    Model { model | focus = Nothing }
 
 
 windowResize : Int -> Model -> Model
-windowResize width model =
-    let
-        breakpoint =
-            em 20
-
-        wide =
-            width > breakpoint
-
-        focusOn =
-            updateFocus model
-    in
-    case ( map .focus model, wide ) of
-        ( ConversationView conv, True ) ->
-            focusOn (FullView (Just conv))
-
-        ( ListView, True ) ->
-            focusOn (FullView Nothing)
-
-        ( FullView Nothing, False ) ->
-            focusOn ListView
-
-        ( FullView (Just conv), False ) ->
-            focusOn (ConversationView conv)
-
-        _ ->
-            model
-
-
-updateFocus : Model -> Focus -> Model
-updateFocus (Model model) focus =
-    Model { model | focus = focus }
+windowResize width (Model model) =
+    Model { model | width = width }
 
 
 subscriptions : Model -> Sub Msg
@@ -154,17 +103,22 @@ subscriptions _ =
     Browser.Events.onResize WindowResize
 
 
+breakpoint : Int
+breakpoint =
+    em 20
+
+
 view : Model -> Element Msg
-view model =
-    case map .focus model of
-        ListView ->
-            listView model
+view (Model model) =
+    (if model.width > breakpoint then
+        fullView
 
-        ConversationView _ ->
-            conversationView model
-
-        FullView _ ->
-            fullView model
+     else
+        model.focus
+            |> Maybe.map (always conversationView)
+            |> Maybe.withDefault listView
+    )
+        (Model model)
 
 
 fullView : Model -> Element Msg
@@ -201,17 +155,17 @@ listView model =
         ]
 
 
-selectionAttributes : Conversation -> Focus -> List (Element.Attribute msg)
+selectionAttributes : Conversation -> Maybe Conversation -> List (Element.Attribute msg)
 selectionAttributes conv focus =
     case focus of
-        FullView (Just current) ->
+        Just current ->
             if current == conv then
                 [ Background.color blue ]
 
             else
                 []
 
-        _ ->
+        Nothing ->
             []
 
 
@@ -249,13 +203,10 @@ conversationView (Model model) =
     let
         convViev =
             case model.focus of
-                FullView (Just conv) ->
+                Just conv ->
                     Conversation.view conv
 
-                ConversationView conv ->
-                    Conversation.view conv
-
-                _ ->
+                Nothing ->
                     el
                         [ centerX
                         , centerY
