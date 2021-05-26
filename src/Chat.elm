@@ -57,11 +57,7 @@ update msg model =
             conv
                 |> Conversation.checkAndLoad GotMessages
                 |> Tuple.mapFirst
-                    (\c ->
-                        model
-                            |> replaceConversation c
-                            >> focusConversation c.id
-                    )
+                    (\c -> replaceAndFocusConversation c model)
 
         BlurConversation ->
             only blurConversation
@@ -73,10 +69,13 @@ update msg model =
             only <| windowResize (truncate window.viewport.width)
 
         GotMessages conversation ->
-            only
-                (replaceConversation conversation
-                    >> focusConversation conversation.id
-                )
+            only <| replaceAndFocusConversation conversation
+
+
+replaceAndFocusConversation : Conversation -> Model -> Model
+replaceAndFocusConversation conversation =
+    replaceConversation conversation
+        >> focusConversation conversation.id
 
 
 replaceConversation : Conversation -> Model -> Model
