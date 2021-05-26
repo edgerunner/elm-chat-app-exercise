@@ -13,5 +13,10 @@
         "id": "3",
         "username": "Chivas Regal",
         "avatar_url": "https://i.pravatar.cc/150?img=3"
+    },
+    {
+        "id": "4",
+        "username": "Bacardi Breezer",
+        "avatar_url": "https://i.pravatar.cc/150?img=4"
     }
 ]
