@@ -8,6 +8,7 @@ import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, 
 import Element.Background as Background
 import Element.Events as Events
 import IdDict
+import Message
 import Styles exposing (blue, em, gray)
 import Task
 import User exposing (Users)
@@ -204,7 +205,7 @@ conversationView (Model model) =
         convViev =
             case model.focus of
                 Just conv ->
-                    Conversation.view conv
+                    Message.view conv.messages
 
                 Nothing ->
                     el

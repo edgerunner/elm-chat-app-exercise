@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Conversations, get, getMessages, listing, view)
+module Conversation exposing (Conversation, Conversations, get, getMessages, listing)
 
 import Api
 import Element exposing (Element, el, fill, height, minimum, padding, paddingXY, row, shrink, spacing, text, width)
@@ -82,8 +82,3 @@ getMessages : (Conversation -> msg) -> Conversation -> Cmd msg
 getMessages msg conv =
     Message.get conv.id
         |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
-
-
-view : Conversation -> Element msg
-view conv =
-    Message.view conv.messages
