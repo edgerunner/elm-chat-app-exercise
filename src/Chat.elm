@@ -54,9 +54,14 @@ update msg model =
     in
     case msg of
         FocusConversation conv ->
-            ( focusConversation conv model
-            , Conversation.getMessages GotMessages conv
-            )
+            conv
+                |> Conversation.getMessages GotMessages
+                |> Tuple.mapFirst
+                    (\c ->
+                        model
+                            |> replaceConversation c
+                            >> focusConversation c
+                    )
 
         BlurConversation ->
             only blurConversation

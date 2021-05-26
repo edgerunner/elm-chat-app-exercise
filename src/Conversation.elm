@@ -78,7 +78,8 @@ unreadBadge count =
                     ]
 
 
-getMessages : (Conversation -> msg) -> Conversation -> Cmd msg
+getMessages : (Conversation -> msg) -> Conversation -> ( Conversation, Cmd msg )
 getMessages msg conv =
     Message.get conv.id
         |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
+        |> Tuple.pair { conv | messages = RemoteData.Loading }
