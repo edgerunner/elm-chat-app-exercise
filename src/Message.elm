@@ -20,13 +20,13 @@ type alias Message =
     }
 
 
-type Model
-    = Model (WebData Messages)
+type alias Model =
+    WebData Messages
 
 
 init : Model
 init =
-    Model RemoteData.NotAsked
+    RemoteData.NotAsked
 
 
 type alias Messages =
@@ -43,7 +43,7 @@ get convId =
         path =
             "/conversations/" ++ convId ++ "/messages"
     in
-    Api.get path decoder Model
+    Api.get path decoder identity
 
 
 decoder : D.Decoder Messages
@@ -62,7 +62,7 @@ decoder =
 
 
 view : Model -> Element msg
-view (Model model) =
+view model =
     case model of
         RemoteData.Success messages ->
             list messages
