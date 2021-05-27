@@ -1,14 +1,16 @@
-module View exposing (view)
+module View exposing (convListing, unreadBadge, view)
 
 import Chat exposing (Model, Msg, focusedMessages)
 import Conversation exposing (Conversation)
 import Dict
-import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
+import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, minimum, padding, paddingXY, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Events as Events
+import Element.Font as Font
 import IdDict exposing (Id)
 import Message exposing (Message)
-import Styles exposing (blue, em, gray)
+import Styles exposing (blue, em, eml, gray, red, white)
 import User exposing (User)
 
 
@@ -98,7 +100,7 @@ convList model =
                              ]
                                 ++ selectionAttributes conv (Chat.focus model)
                             )
-                            (Conversation.listing conv justUser)
+                            (convListing conv justUser)
                 in
                 Maybe.map listing user
             )
@@ -132,3 +134,40 @@ messageView ( message, user ) =
 blob : String -> Element msg
 blob string =
     el [ centerX, centerY ] (text string)
+
+
+convListing : Conversation -> User -> Element msg
+convListing conv user =
+    row
+        [ width fill
+        , Border.widthEach { bottom = 2, top = 0, left = 0, right = 0 }
+        , Border.color gray
+        , spacing (em 1)
+        , paddingXY (em 0.25) 0
+        ]
+        [ User.label user
+        , unreadBadge conv.unread
+        , text "❯"
+        ]
+
+
+unreadBadge : Int -> Element msg
+unreadBadge count =
+    case count of
+        0 ->
+            Element.none
+
+        _ ->
+            String.fromInt count
+                |> Element.text
+                |> el
+                    [ Font.bold
+                    , Font.size (em 1)
+                    , Font.color white
+                    , Border.rounded (em 1)
+                    , Background.color red
+                    , width (minimum (em 1.5) shrink)
+                    , height (eml 1.5)
+                    , padding (em 0.25)
+                    , Font.center
+                    ]
