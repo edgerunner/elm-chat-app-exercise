@@ -8,10 +8,11 @@ import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, 
 import Element.Background as Background
 import Element.Events as Events
 import IdDict exposing (Id)
-import Message
+import Message exposing (Message)
+import RemoteData
 import Styles exposing (blue, em, gray)
 import Task
-import User exposing (Users)
+import User exposing (User, Users)
 
 
 type Model
@@ -35,9 +36,9 @@ type Msg
 
 
 init : Users -> Conversations -> ( Model, Cmd Msg )
-init users conversations =
+init users_ conversations =
     ( Model
-        { users = users
+        { users = users_
         , conversations = conversations
         , focus = Nothing
         , width = 0
@@ -113,6 +114,32 @@ focusedConversation (Model model) =
     model.focus
         |> Maybe.map Dict.get
         |> Maybe.andThen ((|>) model.conversations)
+
+
+focusedMessages : Model -> Maybe (List ( Message, User ))
+focusedMessages model =
+    model
+        |> focusedConversation
+        |> Maybe.map .messages
+        |> Maybe.andThen RemoteData.toMaybe
+        |> Maybe.map
+            (IdDict.toList
+                >> List.filterMap
+                    (\message ->
+                        Dict.get message.from (users model)
+                            |> Maybe.map (Tuple.pair message)
+                    )
+            )
+
+
+users : Model -> Users
+users =
+    map .users
+
+
+map : (ModelRecord -> a) -> Model -> a
+map map_ (Model model) =
+    map_ model
 
 
 breakpoint : Int
@@ -211,22 +238,27 @@ convList (Model model) =
 
 conversationView : Model -> Element Msg
 conversationView model =
-    let
-        convViev =
-            case focusedConversation model of
-                Just conv ->
-                    Message.view conv.messages
-
-                Nothing ->
-                    el
-                        [ centerX
-                        , centerY
-                        ]
-                        (text "Select conversation")
-    in
     el
         [ width fill
         , height fill
         , Events.onClick BlurConversation
         ]
-        convViev
+        (focusedMessages model
+            |> Maybe.map messagesView
+            |> Maybe.withDefault (blob "Select conversation")
+        )
+
+
+messagesView : List ( Message, User ) -> Element msg
+messagesView =
+    List.map messageView >> column [ padding (em 1), spacing (em 0.5) ]
+
+
+messageView : ( Message, User ) -> Element msg
+messageView ( message, user ) =
+    row [ spacing (em 0.5) ] [ User.avatar 1 user, text message.body ]
+
+
+blob : String -> Element msg
+blob string =
+    el [ centerX, centerY ] (text string)
