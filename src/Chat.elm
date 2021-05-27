@@ -110,10 +110,11 @@ subscriptions _ =
 
 
 focusedConversation : Model -> Maybe Conversation
-focusedConversation (Model model) =
-    model.focus
+focusedConversation model =
+    model
+        |> peek .focus
         |> Maybe.map Dict.get
-        |> Maybe.andThen ((|>) model.conversations)
+        |> Maybe.andThen ((|>) (peek .conversations model))
 
 
 focusedMessages : Model -> Maybe (List ( Message, User ))
@@ -134,11 +135,11 @@ focusedMessages model =
 
 users : Model -> Users
 users =
-    map .users
+    peek .users
 
 
-map : (ModelRecord -> a) -> Model -> a
-map map_ (Model model) =
+peek : (ModelRecord -> a) -> Model -> a
+peek map_ (Model model) =
     map_ model
 
 
