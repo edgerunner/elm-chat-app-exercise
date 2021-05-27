@@ -8,6 +8,7 @@ import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
 import RemoteData exposing (RemoteData(..), WebData, append)
 import User exposing (Users)
+import View
 
 
 main : Program () Model Msg
@@ -79,7 +80,7 @@ view model =
             loadingView lm
 
         Chat cm ->
-            Chat.view cm
+            View.view cm
                 |> Element.map ChatMsg
                 |> layout []
 

@@ -1,16 +1,12 @@
-module Chat exposing (Model, Msg, init, subscriptions, update, view)
+module Chat exposing (Model, Msg, blurConversationMsg, conversations, focus, focusConversationMsg, focusedConversation, focusedMessages, init, peek, subscriptions, update, users, width)
 
 import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation, Conversations)
 import Dict
-import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, padding, pointer, row, shrink, spacing, text, width)
-import Element.Background as Background
-import Element.Events as Events
 import IdDict exposing (Id)
 import Message exposing (Message)
 import RemoteData
-import Styles exposing (blue, em, gray)
 import Task
 import User exposing (User, Users)
 
@@ -35,11 +31,21 @@ type Msg
     | GotMessages Conversation
 
 
+focusConversationMsg : Conversation -> Msg
+focusConversationMsg =
+    FocusConversation
+
+
+blurConversationMsg : Msg
+blurConversationMsg =
+    BlurConversation
+
+
 init : Users -> Conversations -> ( Model, Cmd Msg )
-init users_ conversations =
+init users_ conversations_ =
     ( Model
         { users = users_
-        , conversations = conversations
+        , conversations = conversations_
         , focus = Nothing
         , width = 0
         }
@@ -63,8 +69,8 @@ update msg model =
         BlurConversation ->
             only blurConversation
 
-        WindowResize width _ ->
-            only <| windowResize width
+        WindowResize width_ _ ->
+            only <| windowResize width_
 
         WindowInitialize window ->
             only <| windowResize (truncate window.viewport.width)
@@ -100,8 +106,8 @@ blurConversation (Model model) =
 
 
 windowResize : Int -> Model -> Model
-windowResize width (Model model) =
-    Model { model | width = width }
+windowResize width_ (Model model) =
+    Model { model | width = width_ }
 
 
 subscriptions : Model -> Sub Msg
@@ -138,128 +144,21 @@ users =
     peek .users
 
 
+width : Model -> Int
+width =
+    peek .width
+
+
+focus : Model -> Maybe Id
+focus =
+    peek .focus
+
+
+conversations : Model -> Conversations
+conversations =
+    peek .conversations
+
+
 peek : (ModelRecord -> a) -> Model -> a
 peek map_ (Model model) =
     map_ model
-
-
-breakpoint : Int
-breakpoint =
-    em 20
-
-
-view : Model -> Element Msg
-view (Model model) =
-    (if model.width > breakpoint then
-        fullView
-
-     else
-        model.focus
-            |> Maybe.map (always conversationView)
-            |> Maybe.withDefault listView
-    )
-        (Model model)
-
-
-fullView : Model -> Element Msg
-fullView model =
-    row
-        [ width fill
-        , height fill
-        , spacing (em 1)
-        , padding (em 1)
-        , Background.color gray
-        ]
-        [ fullViewBlock shrink (listView model)
-        , fullViewBlock fill (conversationView model)
-        ]
-
-
-fullViewBlock : Element.Length -> Element Msg -> Element Msg
-fullViewBlock w =
-    el
-        [ alignTop
-        , Background.color Styles.white
-        , height fill
-        , width w
-        ]
-
-
-listView : Model -> Element Msg
-listView model =
-    row
-        [ width fill
-        , height fill
-        ]
-        [ convList model
-        ]
-
-
-selectionAttributes : Conversation -> Maybe Id -> List (Element.Attribute msg)
-selectionAttributes conv focus =
-    if
-        focus
-            |> Maybe.map ((==) conv.id)
-            |> Maybe.withDefault False
-    then
-        [ Background.color blue ]
-
-    else
-        []
-
-
-convList : Model -> Element Msg
-convList (Model model) =
-    column
-        [ width fill
-        , height shrink
-        , alignTop
-        ]
-        (List.filterMap
-            (\conv ->
-                let
-                    user =
-                        Dict.get conv.with model.users
-
-                    listing justUser =
-                        el
-                            ([ Events.onClick (FocusConversation conv)
-                             , width fill
-                             , pointer
-                             ]
-                                ++ selectionAttributes conv model.focus
-                            )
-                            (Conversation.listing conv justUser)
-                in
-                Maybe.map listing user
-            )
-            (model.conversations |> IdDict.toList)
-        )
-
-
-conversationView : Model -> Element Msg
-conversationView model =
-    el
-        [ width fill
-        , height fill
-        , Events.onClick BlurConversation
-        ]
-        (focusedMessages model
-            |> Maybe.map messagesView
-            |> Maybe.withDefault (blob "Select conversation")
-        )
-
-
-messagesView : List ( Message, User ) -> Element msg
-messagesView =
-    List.map messageView >> column [ padding (em 1), spacing (em 0.5) ]
-
-
-messageView : ( Message, User ) -> Element msg
-messageView ( message, user ) =
-    row [ spacing (em 0.5) ] [ User.avatar 1 user, text message.body ]
-
-
-blob : String -> Element msg
-blob string =
-    el [ centerX, centerY ] (text string)
