@@ -1,4 +1,4 @@
-module Chat exposing (Model, Msg, blurConversationMsg, conversations, focus, focusConversationMsg, focusedConversation, focusedMessages, init, peek, subscriptions, update, users, width)
+module Chat exposing (Model, Msg, blurConversationMsg, conversations, focus, focusConversationMsg, focusedConversation, focusedMessages, init, subscriptions, update, users, width)
 
 import Browser.Dom
 import Browser.Events

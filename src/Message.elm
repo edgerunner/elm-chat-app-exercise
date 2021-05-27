@@ -1,7 +1,7 @@
 module Message exposing (Message, Messages, Model, decoder, get, init)
 
 import Api
-import IdDict exposing (IdDict)
+import IdDict exposing (Id, IdDict)
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -28,10 +28,6 @@ init =
 
 type alias Messages =
     IdDict Message
-
-
-type alias Id =
-    String
 
 
 get : Id -> Cmd Model
