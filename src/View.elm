@@ -18,15 +18,25 @@ breakpoint =
     em 25
 
 
-view : Model -> Element Msg
-view model =
-    (if Chat.width model > breakpoint then
-        fullView
+break : (Model -> Element msg) -> (Model -> Element msg) -> Model -> Element msg
+break wide narrow model =
+    if Chat.width model > breakpoint then
+        wide model
 
-     else
-        Chat.focus model
-            |> Maybe.map (always conversationView)
-            |> Maybe.withDefault conversationList
+    else
+        narrow model
+
+
+view : Model -> Element Msg
+view =
+    break fullView focusView
+
+
+focusView : Model -> Element Msg
+focusView model =
+    (Chat.focus model
+        |> Maybe.map (always conversationView)
+        |> Maybe.withDefault conversationList
     )
         model
 
