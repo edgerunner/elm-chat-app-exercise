@@ -1,4 +1,4 @@
-module View exposing (convListing, unreadBadge, view)
+module View exposing (view)
 
 import Chat exposing (Model, Msg, focusedMessages)
 import Conversation exposing (Conversation)
