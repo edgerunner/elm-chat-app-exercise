@@ -1,4 +1,4 @@
-module Chat exposing (Model, Msg, blurConversationMsg, conversations, focus, focusConversationMsg, focusedConversation, focusedMessages, init, subscriptions, update, users, width)
+module Chat exposing (Model, Msg, conversations, focus, focusedConversation, focusedMessages, init, msg, subscriptions, update, users, width)
 
 import Browser.Dom
 import Browser.Events
@@ -31,14 +31,14 @@ type Msg
     | GotMessages Conversation
 
 
-focusConversationMsg : Conversation -> Msg
-focusConversationMsg =
-    FocusConversation
-
-
-blurConversationMsg : Msg
-blurConversationMsg =
-    BlurConversation
+msg :
+    { focusConversation : Conversation -> Msg
+    , blurConversation : Msg
+    }
+msg =
+    { focusConversation = FocusConversation
+    , blurConversation = BlurConversation
+    }
 
 
 init : Users -> Conversations -> ( Model, Cmd Msg )
@@ -54,12 +54,12 @@ init users_ conversations_ =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg_ model =
     let
         only transform =
             ( transform model, Cmd.none )
     in
-    case msg of
+    case msg_ of
         FocusConversation conv ->
             conv
                 |> Conversation.checkAndLoad GotMessages

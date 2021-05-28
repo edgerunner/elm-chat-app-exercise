@@ -94,7 +94,7 @@ convList model =
 
                     listing justUser =
                         el
-                            ([ Events.onClick (Chat.focusConversationMsg conv)
+                            ([ Events.onClick (Chat.msg.focusConversation conv)
                              , width fill
                              , pointer
                              ]
@@ -113,7 +113,7 @@ conversationView model =
     el
         [ width fill
         , height fill
-        , Events.onClick Chat.blurConversationMsg
+        , Events.onClick Chat.msg.blurConversation
         ]
         (focusedMessages model
             |> Maybe.map messagesView
