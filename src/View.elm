@@ -15,7 +15,7 @@ import User exposing (User)
 
 breakpoint : Int
 breakpoint =
-    em 20
+    em 25
 
 
 view : Model -> Element Msg
@@ -26,7 +26,7 @@ view model =
      else
         Chat.focus model
             |> Maybe.map (always conversationView)
-            |> Maybe.withDefault listView
+            |> Maybe.withDefault conversationList
     )
         model
 
@@ -40,7 +40,7 @@ fullView model =
         , padding (em 1)
         , Background.color gray
         ]
-        [ fullViewBlock shrink (listView model)
+        [ fullViewBlock shrink (conversationList model)
         , fullViewBlock fill (conversationView model)
         ]
 
@@ -52,16 +52,6 @@ fullViewBlock w =
         , Background.color Styles.white
         , height fill
         , width w
-        ]
-
-
-listView : Model -> Element Msg
-listView model =
-    row
-        [ width fill
-        , height fill
-        ]
-        [ convList model
         ]
 
 
@@ -78,8 +68,8 @@ selectionAttributes conv focus =
         []
 
 
-convList : Model -> Element Msg
-convList model =
+conversationList : Model -> Element Msg
+conversationList model =
     column
         [ width fill
         , height shrink
