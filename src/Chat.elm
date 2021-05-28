@@ -1,4 +1,19 @@
-module Chat exposing (Model, Msg, conversations, focus, focusedConversation, focusedMessages, init, msg, subscriptions, update, users, width)
+module Chat exposing
+    ( Model
+    , Msg
+    , conversation
+    , conversations
+    , focus
+    , focusedConversation
+    , focusedMessages
+    , init
+    , msg
+    , subscriptions
+    , update
+    , user
+    , users
+    , width
+    )
 
 import Browser.Dom
 import Browser.Events
@@ -75,23 +90,23 @@ update msg_ model =
         WindowInitialize window ->
             only <| windowResize (truncate window.viewport.width)
 
-        GotMessages conversation ->
-            only <| replaceAndFocusConversation conversation
+        GotMessages conversation_ ->
+            only <| replaceAndFocusConversation conversation_
 
 
 replaceAndFocusConversation : Conversation -> Model -> Model
-replaceAndFocusConversation conversation =
-    replaceConversation conversation
-        >> focusConversation conversation.id
+replaceAndFocusConversation conversation_ =
+    replaceConversation conversation_
+        >> focusConversation conversation_.id
 
 
 replaceConversation : Conversation -> Model -> Model
-replaceConversation conversation (Model model) =
+replaceConversation conversation_ (Model model) =
     Model
         { model
             | conversations =
                 model.conversations
-                    |> Dict.update conversation.id (\_ -> Just conversation)
+                    |> Dict.update conversation_.id (\_ -> Just conversation_)
         }
 
 
@@ -115,6 +130,10 @@ subscriptions _ =
     Browser.Events.onResize WindowResize
 
 
+
+-- SELECTORS
+
+
 focusedConversation : Model -> Maybe Conversation
 focusedConversation model =
     model
@@ -133,15 +152,30 @@ focusedMessages model =
             (IdDict.toList
                 >> List.filterMap
                     (\message ->
-                        Dict.get message.from (users model)
+                        Dict.get message.from (peek .users model)
                             |> Maybe.map (Tuple.pair message)
                     )
             )
 
 
-users : Model -> Users
+users : Model -> List User
 users =
-    peek .users
+    peek .users >> IdDict.toList
+
+
+user : Id -> Model -> Maybe User
+user id =
+    peek .users >> Dict.get id
+
+
+conversations : Model -> List Conversation
+conversations =
+    peek .conversations >> IdDict.toList
+
+
+conversation : Id -> Model -> Maybe Conversation
+conversation id =
+    peek .conversations >> Dict.get id
 
 
 width : Model -> Int
@@ -152,11 +186,6 @@ width =
 focus : Model -> Maybe Id
 focus =
     peek .focus
-
-
-conversations : Model -> Conversations
-conversations =
-    peek .conversations
 
 
 peek : (ModelRecord -> a) -> Model -> a

@@ -2,7 +2,6 @@ module View exposing (convListing, unreadBadge, view)
 
 import Chat exposing (Model, Msg, focusedMessages)
 import Conversation exposing (Conversation)
-import Dict
 import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, minimum, padding, paddingXY, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -90,7 +89,7 @@ convList model =
             (\conv ->
                 let
                     user =
-                        Dict.get conv.with (Chat.users model)
+                        Chat.user conv.with model
 
                     listing justUser =
                         el
@@ -104,7 +103,7 @@ convList model =
                 in
                 Maybe.map listing user
             )
-            (model |> Chat.conversations |> IdDict.toList)
+            (Chat.conversations model)
         )
 
 
