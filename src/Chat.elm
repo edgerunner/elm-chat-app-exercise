@@ -7,6 +7,7 @@ module Chat exposing
     , focusedConversation
     , focusedMessages
     , init
+    , messageFrom
     , msg
     , subscriptions
     , update
@@ -142,20 +143,19 @@ focusedConversation model =
         |> Maybe.andThen ((|>) (peek .conversations model))
 
 
-focusedMessages : Model -> Maybe (List ( Message, User ))
+focusedMessages : Model -> Maybe (List Message)
 focusedMessages model =
     model
         |> focusedConversation
         |> Maybe.map .messages
         |> Maybe.andThen RemoteData.toMaybe
-        |> Maybe.map
-            (IdDict.toList
-                >> List.filterMap
-                    (\message ->
-                        Dict.get message.from (peek .users model)
-                            |> Maybe.map (Tuple.pair message)
-                    )
-            )
+        |> Maybe.map IdDict.toList
+
+
+messageFrom : Message -> Model -> User
+messageFrom message =
+    user message.from
+        >> Maybe.withDefault User.unknown
 
 
 users : Model -> List User

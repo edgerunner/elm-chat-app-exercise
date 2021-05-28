@@ -85,23 +85,19 @@ conversationList model =
         , height shrink
         , alignTop
         ]
-        (List.filterMap
+        (List.map
             (\conv ->
-                let
-                    user =
-                        Chat.user conv.with model
-
-                    listing justUser =
-                        el
-                            ([ Events.onClick (Chat.msg.focusConversation conv)
-                             , width fill
-                             , pointer
-                             ]
-                                ++ selectionAttributes conv (Chat.focus model)
-                            )
-                            (convListing conv justUser)
-                in
-                Maybe.map listing user
+                el
+                    ([ Events.onClick (Chat.msg.focusConversation conv)
+                     , width fill
+                     , pointer
+                     ]
+                        ++ selectionAttributes conv (Chat.focus model)
+                    )
+                    (Chat.user conv.with model
+                        |> Maybe.withDefault User.unknown
+                        |> convListing conv
+                    )
             )
             (Chat.conversations model)
         )
@@ -115,9 +111,15 @@ conversationView model =
         , Events.onClick Chat.msg.blurConversation
         ]
         (focusedMessages model
+            |> Maybe.map (List.map (messageWithUser model))
             |> Maybe.map messagesView
             |> Maybe.withDefault (blob "Select conversation")
         )
+
+
+messageWithUser : Model -> Message -> ( Message, User )
+messageWithUser model message =
+    ( message, Chat.messageFrom message model )
 
 
 messagesView : List ( Message, User ) -> Element msg

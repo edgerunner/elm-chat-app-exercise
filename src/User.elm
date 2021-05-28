@@ -1,4 +1,4 @@
-module User exposing (User, Users, avatar, get, label)
+module User exposing (User, Users, avatar, get, label, unknown)
 
 import Api
 import Element exposing (Element, centerY, clip, fill, height, row, spacing, width)
@@ -56,3 +56,11 @@ avatar size user =
         , clip
         ]
         { src = user.avatar, description = user.name }
+
+
+unknown : User
+unknown =
+    { id = ""
+    , name = "Unknown user"
+    , avatar = ""
+    }
