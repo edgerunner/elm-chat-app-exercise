@@ -1,8 +1,8 @@
-module View exposing (view)
+module View exposing (avatar, userLabel, view)
 
 import Chat exposing (Model, Msg, focusedMessages)
 import Conversation exposing (Conversation)
-import Element exposing (Element, alignTop, centerX, centerY, column, el, fill, height, minimum, padding, paddingXY, pointer, row, shrink, spacing, text, width)
+import Element exposing (Element, alignTop, centerX, centerY, clip, column, el, fill, height, minimum, padding, paddingXY, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
@@ -129,7 +129,7 @@ messagesView =
 
 messageView : ( Message, User ) -> Element msg
 messageView ( message, user ) =
-    row [ spacing (em 0.5) ] [ User.avatar 1 user, text message.body ]
+    row [ spacing (em 0.5) ] [ avatar 1 user, text message.body ]
 
 
 blob : String -> Element msg
@@ -146,7 +146,7 @@ convListing conv user =
         , spacing (em 1)
         , paddingXY (em 0.25) 0
         ]
-        [ User.label user
+        [ userLabel user
         , unreadBadge conv.unread
         , text "❯"
         ]
@@ -154,21 +154,44 @@ convListing conv user =
 
 unreadBadge : Int -> Element msg
 unreadBadge count =
-    case count of
-        0 ->
-            Element.none
+    if count > 0 then
+        String.fromInt count
+            |> Element.text
+            |> el
+                [ Font.bold
+                , Font.size (em 1)
+                , Font.color white
+                , Border.rounded (em 1)
+                , Background.color red
+                , width (minimum (em 1.5) shrink)
+                , height (eml 1.5)
+                , padding (em 0.25)
+                , Font.center
+                ]
 
-        _ ->
-            String.fromInt count
-                |> Element.text
-                |> el
-                    [ Font.bold
-                    , Font.size (em 1)
-                    , Font.color white
-                    , Border.rounded (em 1)
-                    , Background.color red
-                    , width (minimum (em 1.5) shrink)
-                    , height (eml 1.5)
-                    , padding (em 0.25)
-                    , Font.center
-                    ]
+    else
+        Element.none
+
+
+userLabel : User -> Element msg
+userLabel user =
+    row
+        [ width fill
+        , height (eml 3)
+        , centerY
+        , spacing (em 0.5)
+        ]
+        [ avatar 2.4 user
+        , Element.text user.name
+        ]
+
+
+avatar : Float -> User -> Element msg
+avatar size user =
+    Element.image
+        [ height (eml size)
+        , width (eml size)
+        , Border.rounded (em <| size / 2)
+        , clip
+        ]
+        { src = user.avatar, description = user.name }
