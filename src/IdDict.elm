@@ -12,9 +12,9 @@ type alias IdDict a =
     Dict Id a
 
 
-decoder : Decoder { a | id : Id } -> Decoder (IdDict { a | id : Id })
-decoder =
-    Decode.map (extract .id)
+decoder : (a -> Id) -> Decoder a -> Decoder (IdDict a)
+decoder getId =
+    Decode.map (extract getId)
         >> Decode.list
         >> Decode.map Dict.fromList
 

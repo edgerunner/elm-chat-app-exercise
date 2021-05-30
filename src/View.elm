@@ -69,7 +69,7 @@ selectionAttributes : Conversation -> Maybe Id -> List (Element.Attribute msg)
 selectionAttributes conv focus =
     if
         focus
-            |> Maybe.map ((==) conv.id)
+            |> Maybe.map ((==) (Conversation.id conv))
             |> Maybe.withDefault False
     then
         [ Background.color blue ]
@@ -94,7 +94,7 @@ conversationList model =
                      ]
                         ++ selectionAttributes conv (Chat.focus model)
                     )
-                    (Chat.user conv.with model
+                    (Chat.user (Conversation.with conv) model
                         |> Maybe.withDefault User.unknown
                         |> convListing conv
                     )
@@ -129,7 +129,7 @@ messagesView =
 
 messageView : ( Message, User ) -> Element msg
 messageView ( message, user ) =
-    row [ spacing (em 0.5) ] [ avatar 1 user, text message.body ]
+    row [ spacing (em 0.5) ] [ avatar 1 user, text <| Message.body message ]
 
 
 blob : String -> Element msg
@@ -147,7 +147,7 @@ convListing conv user =
         , paddingXY (em 0.25) 0
         ]
         [ userLabel user
-        , unreadBadge conv.unread
+        , unreadBadge (Conversation.unread conv)
         , text "❯"
         ]
 
@@ -182,7 +182,7 @@ userLabel user =
         , spacing (em 0.5)
         ]
         [ avatar 2.4 user
-        , Element.text user.name
+        , Element.text (User.name user)
         ]
 
 
@@ -194,4 +194,4 @@ avatar size user =
         , Border.rounded (em <| size / 2)
         , clip
         ]
-        { src = user.avatar, description = user.name }
+        { src = User.avatar user, description = User.name user }

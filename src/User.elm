@@ -1,13 +1,17 @@
-module User exposing (User, Users, get, unknown)
+module User exposing (User, Users, avatar, get, name, unknown)
 
 import Api
-import IdDict exposing (IdDict)
+import IdDict exposing (Id, IdDict)
 import Json.Decode as D
 import RemoteData exposing (WebData)
 
 
-type alias User =
-    { id : String
+type User
+    = User Internals
+
+
+type alias Internals =
+    { id : Id
     , name : String
     , avatar : String
     }
@@ -24,16 +28,38 @@ get =
 
 decoder : D.Decoder Users
 decoder =
-    D.map3 User
+    D.map3 Internals
         (D.field "id" D.string)
         (D.field "username" D.string)
         (D.field "avatar_url" D.string)
-        |> IdDict.decoder
+        |> D.map User
+        |> IdDict.decoder id
+
+
+internals : (Internals -> a) -> User -> a
+internals extract (User internals_) =
+    extract internals_
+
+
+id : User -> Id
+id =
+    internals .id
+
+
+name : User -> String
+name =
+    internals .name
+
+
+avatar : User -> String
+avatar =
+    internals .avatar
 
 
 unknown : User
 unknown =
-    { id = ""
-    , name = "Unknown user"
-    , avatar = ""
-    }
+    User
+        { id = ""
+        , name = "Unknown user"
+        , avatar = ""
+        }

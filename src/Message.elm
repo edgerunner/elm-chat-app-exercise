@@ -1,4 +1,4 @@
-module Message exposing (Message, Messages, Model, decoder, get, init)
+module Message exposing (Message, Messages, Model, body, decoder, from, get, init)
 
 import Api
 import IdDict exposing (Id, IdDict)
@@ -8,7 +8,11 @@ import RemoteData exposing (WebData)
 import Time exposing (Posix)
 
 
-type alias Message =
+type Message
+    = Message Internals
+
+
+type alias Internals =
     { id : Id
     , from : Id
     , conversation : Id
@@ -41,10 +45,31 @@ get convId =
 
 decoder : D.Decoder Messages
 decoder =
-    D.map5 Message
+    D.map5 Internals
         (D.field "id" D.string)
         (D.field "from_user_id" D.string)
         (D.field "conversation_id" D.string)
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
-        |> IdDict.decoder
+        |> D.map Message
+        |> IdDict.decoder id
+
+
+internals : (Internals -> a) -> Message -> a
+internals extract (Message internals_) =
+    extract internals_
+
+
+id : Message -> Id
+id =
+    internals .id
+
+
+from : Message -> Id
+from =
+    internals .from
+
+
+body : Message -> String
+body =
+    internals .body
