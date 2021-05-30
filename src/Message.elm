@@ -1,7 +1,8 @@
 module Message exposing (Message, Messages, Model, body, decoder, from, get, init)
 
 import Api
-import IdDict exposing (Id, IdDict)
+import Id exposing (Id)
+import IdDict exposing (IdDict)
 import Iso8601
 import Json.Decode as D
 import RemoteData exposing (WebData)
@@ -38,7 +39,7 @@ get : Id -> Cmd Model
 get convId =
     let
         path =
-            "/conversations/" ++ convId ++ "/messages"
+            "/conversations/" ++ Id.toString convId ++ "/messages"
     in
     Api.get path decoder identity
 
@@ -46,9 +47,9 @@ get convId =
 decoder : D.Decoder Messages
 decoder =
     D.map5 Internals
-        (D.field "id" D.string)
-        (D.field "from_user_id" D.string)
-        (D.field "conversation_id" D.string)
+        (D.field "id" Id.decoder)
+        (D.field "from_user_id" Id.decoder)
+        (D.field "conversation_id" Id.decoder)
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
         |> D.map Message

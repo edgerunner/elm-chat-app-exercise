@@ -1,8 +1,8 @@
 module Conversation exposing (Conversation, Conversations, checkAndLoad, get, id, messages, unread, update, with)
 
 import Api
-import Dict
-import IdDict exposing (Id, IdDict)
+import Id exposing (Id)
+import IdDict exposing (IdDict)
 import Json.Decode as D
 import Message
 import Platform.Cmd exposing (Cmd)
@@ -33,8 +33,8 @@ get =
 decoder : D.Decoder Conversations
 decoder =
     D.map4 Internals
-        (D.field "id" D.string)
-        (D.field "with_user_id" D.string)
+        (D.field "id" Id.decoder)
+        (D.field "with_user_id" Id.decoder)
         (D.field "unread_message_count" D.int)
         (D.succeed Message.init)
         |> D.map Conversation
@@ -68,7 +68,7 @@ messages =
 
 update : Conversation -> IdDict Conversation -> IdDict Conversation
 update conv =
-    Dict.update (id conv) (always <| Just conv)
+    IdDict.update (id conv) (always <| Just conv)
 
 
 getMessages : (Conversation -> msg) -> Conversation -> ( Conversation, Cmd msg )

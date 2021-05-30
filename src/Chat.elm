@@ -19,8 +19,8 @@ module Chat exposing
 import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation, Conversations)
-import Dict
-import IdDict exposing (Id)
+import Id exposing (Id)
+import IdDict
 import Message exposing (Message)
 import RemoteData
 import Task
@@ -113,7 +113,7 @@ replaceConversation conversation_ (Model model) =
 
 focusConversation : Id -> Model -> Model
 focusConversation convId (Model model) =
-    Model { model | focus = model.conversations |> Dict.get convId |> Maybe.map Conversation.id }
+    Model { model | focus = model.conversations |> IdDict.get convId |> Maybe.map Conversation.id }
 
 
 blurConversation : Model -> Model
@@ -139,7 +139,7 @@ focusedConversation : Model -> Maybe Conversation
 focusedConversation model =
     model
         |> internals .focus
-        |> Maybe.map Dict.get
+        |> Maybe.map IdDict.get
         |> Maybe.andThen ((|>) (internals .conversations model))
 
 
@@ -152,10 +152,9 @@ focusedMessages model =
         |> Maybe.map IdDict.toList
 
 
-messageFrom : Message -> Model -> User
+messageFrom : Message -> Model -> Maybe User
 messageFrom message =
     user (Message.from message)
-        >> Maybe.withDefault User.unknown
 
 
 users : Model -> List User
@@ -165,7 +164,7 @@ users =
 
 user : Id -> Model -> Maybe User
 user id =
-    internals .users >> Dict.get id
+    internals .users >> IdDict.get id
 
 
 conversations : Model -> List Conversation
@@ -175,7 +174,7 @@ conversations =
 
 conversation : Id -> Model -> Maybe Conversation
 conversation id =
-    internals .conversations >> Dict.get id
+    internals .conversations >> IdDict.get id
 
 
 width : Model -> Int

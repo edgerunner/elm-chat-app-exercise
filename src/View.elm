@@ -7,7 +7,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import IdDict exposing (Id)
+import Id exposing (Id)
 import Message exposing (Message)
 import Styles exposing (blue, em, eml, gray, red, white)
 import User exposing (User)
@@ -95,8 +95,8 @@ conversationList model =
                         ++ selectionAttributes conv (Chat.focus model)
                     )
                     (Chat.user (Conversation.with conv) model
-                        |> Maybe.withDefault User.unknown
-                        |> convListing conv
+                        |> Maybe.map (convListing conv)
+                        |> Maybe.withDefault (text "Unknown user")
                     )
             )
             (Chat.conversations model)
@@ -117,19 +117,24 @@ conversationView model =
         )
 
 
-messageWithUser : Model -> Message -> ( Message, User )
+messageWithUser : Model -> Message -> ( Message, Maybe User )
 messageWithUser model message =
     ( message, Chat.messageFrom message model )
 
 
-messagesView : List ( Message, User ) -> Element msg
+messagesView : List ( Message, Maybe User ) -> Element msg
 messagesView =
     List.map messageView >> column [ padding (em 1), spacing (em 0.5) ]
 
 
-messageView : ( Message, User ) -> Element msg
-messageView ( message, user ) =
-    row [ spacing (em 0.5) ] [ avatar 1 user, text <| Message.body message ]
+messageView : ( Message, Maybe User ) -> Element msg
+messageView ( message, maybeUser ) =
+    case maybeUser of
+        Just user ->
+            row [ spacing (em 0.5) ] [ avatar 1 user, text <| Message.body message ]
+
+        Nothing ->
+            row [ spacing (em 0.5) ] [ text "?", text <| Message.body message ]
 
 
 blob : String -> Element msg
