@@ -1,14 +1,19 @@
-module Conversation exposing (Conversation, Conversations, checkAndLoad, get)
+module Conversation exposing (Conversation, Conversations, checkAndLoad, get, id, messages, unread, update, with)
 
 import Api
-import IdDict exposing (Id, IdDict)
+import Id exposing (Id)
+import IdDict exposing (IdDict)
 import Json.Decode as D
 import Message
 import Platform.Cmd exposing (Cmd)
 import RemoteData exposing (RemoteData(..), WebData)
 
 
-type alias Conversation =
+type Conversation
+    = Conversation Internals
+
+
+type alias Internals =
     { id : Id
     , with : Id
     , unread : Int
@@ -27,32 +32,63 @@ get =
 
 decoder : D.Decoder Conversations
 decoder =
-    D.map4 Conversation
-        (D.field "id" D.string)
-        (D.field "with_user_id" D.string)
+    D.map4 Internals
+        (D.field "id" Id.decoder)
+        (D.field "with_user_id" Id.decoder)
         (D.field "unread_message_count" D.int)
         (D.succeed Message.init)
-        |> IdDict.decoder
+        |> D.map Conversation
+        |> IdDict.decoder id
+
+
+internals : (Internals -> a) -> Conversation -> a
+internals extract (Conversation internals_) =
+    extract internals_
+
+
+id : Conversation -> Id
+id =
+    internals .id
+
+
+with : Conversation -> Id
+with =
+    internals .with
+
+
+unread : Conversation -> Int
+unread =
+    internals .unread
+
+
+messages : Conversation -> Message.Model
+messages =
+    internals .messages
+
+
+update : Conversation -> IdDict Conversation -> IdDict Conversation
+update conv =
+    IdDict.update (id conv) (always <| Just conv)
 
 
 getMessages : (Conversation -> msg) -> Conversation -> ( Conversation, Cmd msg )
-getMessages msg conv =
+getMessages msg (Conversation conv) =
     Message.get conv.id
-        |> Cmd.map (\messages -> { conv | messages = messages } |> msg)
-        |> Tuple.pair { conv | messages = RemoteData.Loading }
+        |> Cmd.map (\messages_ -> Conversation { conv | messages = messages_ } |> msg)
+        |> Tuple.pair (Conversation { conv | messages = RemoteData.Loading })
 
 
 checkAndLoad : (Conversation -> msg) -> Conversation -> ( Conversation, Cmd msg )
-checkAndLoad msg conv =
-    case conv.messages of
+checkAndLoad msg conversation =
+    case internals .messages conversation of
         Success _ ->
-            ( conv, Cmd.none )
+            ( conversation, Cmd.none )
 
         Loading ->
-            ( conv, Cmd.none )
+            ( conversation, Cmd.none )
 
         NotAsked ->
-            getMessages msg conv
+            getMessages msg conversation
 
         Failure _ ->
-            getMessages msg conv
+            getMessages msg conversation

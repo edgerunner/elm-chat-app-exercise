@@ -7,7 +7,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import IdDict exposing (Id)
+import Id exposing (Id)
 import Message exposing (Message)
 import Styles exposing (blue, em, eml, gray, red, white)
 import User exposing (User)
@@ -69,7 +69,7 @@ selectionAttributes : Conversation -> Maybe Id -> List (Element.Attribute msg)
 selectionAttributes conv focus =
     if
         focus
-            |> Maybe.map ((==) conv.id)
+            |> Maybe.map ((==) (Conversation.id conv))
             |> Maybe.withDefault False
     then
         [ Background.color blue ]
@@ -94,9 +94,9 @@ conversationList model =
                      ]
                         ++ selectionAttributes conv (Chat.focus model)
                     )
-                    (Chat.user conv.with model
-                        |> Maybe.withDefault User.unknown
-                        |> convListing conv
+                    (Chat.user (Conversation.with conv) model
+                        |> Maybe.map (convListing conv)
+                        |> Maybe.withDefault (text "Unknown user")
                     )
             )
             (Chat.conversations model)
@@ -117,19 +117,24 @@ conversationView model =
         )
 
 
-messageWithUser : Model -> Message -> ( Message, User )
+messageWithUser : Model -> Message -> ( Message, Maybe User )
 messageWithUser model message =
     ( message, Chat.messageFrom message model )
 
 
-messagesView : List ( Message, User ) -> Element msg
+messagesView : List ( Message, Maybe User ) -> Element msg
 messagesView =
     List.map messageView >> column [ padding (em 1), spacing (em 0.5) ]
 
 
-messageView : ( Message, User ) -> Element msg
-messageView ( message, user ) =
-    row [ spacing (em 0.5) ] [ avatar 1 user, text message.body ]
+messageView : ( Message, Maybe User ) -> Element msg
+messageView ( message, maybeUser ) =
+    case maybeUser of
+        Just user ->
+            row [ spacing (em 0.5) ] [ avatar 1 user, text <| Message.body message ]
+
+        Nothing ->
+            row [ spacing (em 0.5) ] [ text "?", text <| Message.body message ]
 
 
 blob : String -> Element msg
@@ -147,7 +152,7 @@ convListing conv user =
         , paddingXY (em 0.25) 0
         ]
         [ userLabel user
-        , unreadBadge conv.unread
+        , unreadBadge (Conversation.unread conv)
         , text "❯"
         ]
 
@@ -182,7 +187,7 @@ userLabel user =
         , spacing (em 0.5)
         ]
         [ avatar 2.4 user
-        , Element.text user.name
+        , Element.text (User.name user)
         ]
 
 
@@ -194,4 +199,4 @@ avatar size user =
         , Border.rounded (em <| size / 2)
         , clip
         ]
-        { src = user.avatar, description = user.name }
+        { src = User.avatar user, description = User.name user }

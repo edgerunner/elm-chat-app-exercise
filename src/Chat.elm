@@ -19,8 +19,8 @@ module Chat exposing
 import Browser.Dom
 import Browser.Events
 import Conversation exposing (Conversation, Conversations)
-import Dict
-import IdDict exposing (Id)
+import Id exposing (Id)
+import IdDict
 import Message exposing (Message)
 import RemoteData
 import Task
@@ -28,10 +28,10 @@ import User exposing (User, Users)
 
 
 type Model
-    = Model ModelRecord
+    = Model Internals
 
 
-type alias ModelRecord =
+type alias Internals =
     { users : Users
     , conversations : Conversations
     , focus : Maybe Id
@@ -98,7 +98,7 @@ update msg_ model =
 replaceAndFocusConversation : Conversation -> Model -> Model
 replaceAndFocusConversation conversation_ =
     replaceConversation conversation_
-        >> focusConversation conversation_.id
+        >> focusConversation (Conversation.id conversation_)
 
 
 replaceConversation : Conversation -> Model -> Model
@@ -107,13 +107,13 @@ replaceConversation conversation_ (Model model) =
         { model
             | conversations =
                 model.conversations
-                    |> Dict.update conversation_.id (\_ -> Just conversation_)
+                    |> Conversation.update conversation_
         }
 
 
 focusConversation : Id -> Model -> Model
 focusConversation convId (Model model) =
-    Model { model | focus = model.conversations |> Dict.get convId |> Maybe.map .id }
+    Model { model | focus = model.conversations |> IdDict.get convId |> Maybe.map Conversation.id }
 
 
 blurConversation : Model -> Model
@@ -138,56 +138,55 @@ subscriptions _ =
 focusedConversation : Model -> Maybe Conversation
 focusedConversation model =
     model
-        |> peek .focus
-        |> Maybe.map Dict.get
-        |> Maybe.andThen ((|>) (peek .conversations model))
+        |> internals .focus
+        |> Maybe.map IdDict.get
+        |> Maybe.andThen ((|>) (internals .conversations model))
 
 
 focusedMessages : Model -> Maybe (List Message)
 focusedMessages model =
     model
         |> focusedConversation
-        |> Maybe.map .messages
+        |> Maybe.map Conversation.messages
         |> Maybe.andThen RemoteData.toMaybe
         |> Maybe.map IdDict.toList
 
 
-messageFrom : Message -> Model -> User
+messageFrom : Message -> Model -> Maybe User
 messageFrom message =
-    user message.from
-        >> Maybe.withDefault User.unknown
+    user (Message.from message)
 
 
 users : Model -> List User
 users =
-    peek .users >> IdDict.toList
+    internals .users >> IdDict.toList
 
 
 user : Id -> Model -> Maybe User
 user id =
-    peek .users >> Dict.get id
+    internals .users >> IdDict.get id
 
 
 conversations : Model -> List Conversation
 conversations =
-    peek .conversations >> IdDict.toList
+    internals .conversations >> IdDict.toList
 
 
 conversation : Id -> Model -> Maybe Conversation
 conversation id =
-    peek .conversations >> Dict.get id
+    internals .conversations >> IdDict.get id
 
 
 width : Model -> Int
 width =
-    peek .width
+    internals .width
 
 
 focus : Model -> Maybe Id
 focus =
-    peek .focus
+    internals .focus
 
 
-peek : (ModelRecord -> a) -> Model -> a
-peek map_ (Model model) =
-    map_ model
+internals : (Internals -> a) -> Model -> a
+internals extract (Model model) =
+    extract model
