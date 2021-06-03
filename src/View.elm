@@ -1,6 +1,6 @@
 module View exposing (avatar, userLabel, view)
 
-import Chat exposing (Model, Msg, focusedMessages)
+import Chat exposing (Model, Msg)
 import Conversation exposing (Conversation)
 import Element exposing (Element, alignTop, centerX, centerY, clip, column, el, fill, height, minimum, padding, paddingXY, pointer, row, shrink, spacing, text, width)
 import Element.Background as Background
@@ -9,7 +9,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Id exposing (Id)
 import Message exposing (Message)
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..))
 import Styles exposing (blue, em, eml, gray, red, white)
 import User exposing (User)
 
@@ -111,31 +111,31 @@ conversationView model =
         , height fill
         , Events.onClick Chat.msg.blurConversation
         ]
-        (focusedMessages model
+        (Chat.focusedConversation model
             |> Maybe.map (conversationStateView model)
             |> Maybe.withDefault (blob "Select conversation")
         )
 
 
-conversationStateView : Model -> WebData (List Message) -> Element msg
-conversationStateView model state =
-    case Debug.log "messages loading state" state of
+conversationStateView : Model -> Conversation -> Element msg
+conversationStateView model conv =
+    case Conversation.messages conv of
         NotAsked ->
             blob "A moment please…"
 
         Loading ->
             blob "Loading…"
 
-        Success list ->
-            List.map (messageWithUser model) list |> messagesView
+        Success dict ->
+            Message.asList dict
+                |> List.map
+                    (\message ->
+                        ( message, Chat.user (Conversation.with conv) model )
+                    )
+                |> messagesView
 
         Failure _ ->
             blob "Error loading messages"
-
-
-messageWithUser : Model -> Message -> ( Message, Maybe User )
-messageWithUser model message =
-    ( message, Chat.messageFrom message model )
 
 
 messagesView : List ( Message, Maybe User ) -> Element msg

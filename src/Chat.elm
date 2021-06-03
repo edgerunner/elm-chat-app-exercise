@@ -7,7 +7,6 @@ module Chat exposing
     , focusedConversation
     , focusedMessages
     , init
-    , messageFrom
     , msg
     , subscriptions
     , update
@@ -149,11 +148,6 @@ focusedMessages model =
         |> focusedConversation
         |> Maybe.map Conversation.messages
         |> Maybe.map (RemoteData.map IdDict.toList)
-
-
-messageFrom : Message -> Model -> Maybe User
-messageFrom message =
-    user (Message.from message)
 
 
 users : Model -> List User

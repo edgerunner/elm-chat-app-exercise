@@ -1,4 +1,4 @@
-module Message exposing (Message, Messages, Model, body, decoder, from, get, init)
+module Message exposing (Message, Messages, Model, asList, body, decoder, get, incoming, init)
 
 import Api
 import Id exposing (Id)
@@ -15,8 +15,7 @@ type Message
 
 type alias Internals =
     { id : Id
-    , from : Id
-    , conversation : Id
+    , incoming : Bool
     , body : String
     , time : Posix
     }
@@ -46,10 +45,9 @@ get convId =
 
 decoder : D.Decoder Messages
 decoder =
-    D.map5 Internals
+    D.map4 Internals
         (D.field "id" Id.decoder)
-        (D.field "from_user_id" Id.decoder)
-        (D.field "conversation_id" Id.decoder)
+        (D.field "incoming" D.bool)
         (D.field "body" D.string)
         (D.field "created_at" Iso8601.decoder)
         |> D.map Message
@@ -66,11 +64,16 @@ id =
     internals .id
 
 
-from : Message -> Id
-from =
-    internals .from
+incoming : Message -> Bool
+incoming =
+    internals .incoming
 
 
 body : Message -> String
 body =
     internals .body
+
+
+asList : Messages -> List Message
+asList =
+    IdDict.toList
