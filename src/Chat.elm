@@ -7,6 +7,7 @@ module Chat exposing
     , focusedConversation
     , focusedMessages
     , init
+    , me
     , msg
     , subscriptions
     , update

@@ -130,7 +130,15 @@ conversationStateView model conv =
             Message.asList dict
                 |> List.map
                     (\message ->
-                        ( message, Chat.user (Conversation.with conv) model )
+                        let
+                            user =
+                                if Message.incoming message then
+                                    Chat.user (Conversation.with conv) model
+
+                                else
+                                    Chat.me model |> Just
+                        in
+                        ( message, user )
                     )
                 |> messagesView
 
