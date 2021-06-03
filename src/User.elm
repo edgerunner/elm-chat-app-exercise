@@ -1,4 +1,4 @@
-module User exposing (User, Users, avatar, get, name)
+module User exposing (User, Users, avatar, getAll, getMe, name)
 
 import Api
 import Id exposing (Id)
@@ -22,19 +22,23 @@ type alias Users =
     IdDict User
 
 
-get : (WebData Users -> msg) -> Cmd msg
-get =
-    Api.get "/users" decoder
+getAll : (WebData Users -> msg) -> Cmd msg
+getAll =
+    Api.get "/users" (decoder |> IdDict.decoder id)
 
 
-decoder : D.Decoder Users
+getMe : (WebData User -> msg) -> Cmd msg
+getMe =
+    Api.get "/users/me" decoder
+
+
+decoder : D.Decoder User
 decoder =
     D.map3 Internals
         (D.field "id" Id.decoder)
         (D.field "username" D.string)
         (D.field "avatar_url" D.string)
         |> D.map User
-        |> IdDict.decoder id
 
 
 internals : (Internals -> a) -> User -> a

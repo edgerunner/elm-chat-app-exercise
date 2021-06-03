@@ -33,6 +33,7 @@ type Model
 type alias Internals =
     { users : Users
     , conversations : Conversations
+    , me : User
     , focus : Maybe Id
     , width : Int
     }
@@ -56,11 +57,12 @@ msg =
     }
 
 
-init : Users -> Conversations -> ( Model, Cmd Msg )
-init users_ conversations_ =
+init : Users -> Conversations -> User -> ( Model, Cmd Msg )
+init users_ conversations_ me_ =
     ( Model
         { users = users_
         , conversations = conversations_
+        , me = me_
         , focus = Nothing
         , width = 0
         }
@@ -168,6 +170,11 @@ conversations =
 conversation : Id -> Model -> Maybe Conversation
 conversation id =
     internals .conversations >> IdDict.get id
+
+
+me : Model -> User
+me =
+    internals .me
 
 
 width : Model -> Int

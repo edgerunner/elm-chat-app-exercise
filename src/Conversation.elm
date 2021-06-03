@@ -1,4 +1,4 @@
-module Conversation exposing (Conversation, Conversations, checkAndLoad, get, id, messages, unread, update, with)
+module Conversation exposing (Conversation, Conversations, checkAndLoad, getAll, id, messages, unread, update, with)
 
 import Api
 import Id exposing (Id)
@@ -25,8 +25,8 @@ type alias Conversations =
     IdDict Conversation
 
 
-get : (WebData Conversations -> msg) -> Cmd msg
-get =
+getAll : (WebData Conversations -> msg) -> Cmd msg
+getAll =
     Api.get "/conversations" decoder
 
 
