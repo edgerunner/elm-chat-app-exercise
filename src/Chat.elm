@@ -22,7 +22,7 @@ import Conversation exposing (Conversation, Conversations)
 import Id exposing (Id)
 import IdDict
 import Message exposing (Message)
-import RemoteData
+import RemoteData exposing (WebData)
 import Task
 import User exposing (User, Users)
 
@@ -143,13 +143,12 @@ focusedConversation model =
         |> Maybe.andThen ((|>) (internals .conversations model))
 
 
-focusedMessages : Model -> Maybe (List Message)
+focusedMessages : Model -> Maybe (WebData (List Message))
 focusedMessages model =
     model
         |> focusedConversation
         |> Maybe.map Conversation.messages
-        |> Maybe.andThen RemoteData.toMaybe
-        |> Maybe.map IdDict.toList
+        |> Maybe.map (RemoteData.map IdDict.toList)
 
 
 messageFrom : Message -> Model -> Maybe User

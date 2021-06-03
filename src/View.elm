@@ -9,6 +9,7 @@ import Element.Events as Events
 import Element.Font as Font
 import Id exposing (Id)
 import Message exposing (Message)
+import RemoteData exposing (RemoteData(..), WebData)
 import Styles exposing (blue, em, eml, gray, red, white)
 import User exposing (User)
 
@@ -111,10 +112,25 @@ conversationView model =
         , Events.onClick Chat.msg.blurConversation
         ]
         (focusedMessages model
-            |> Maybe.map (List.map (messageWithUser model))
-            |> Maybe.map messagesView
+            |> Maybe.map (conversationStateView model)
             |> Maybe.withDefault (blob "Select conversation")
         )
+
+
+conversationStateView : Model -> WebData (List Message) -> Element msg
+conversationStateView model state =
+    case Debug.log "messages loading state" state of
+        NotAsked ->
+            blob "A moment please…"
+
+        Loading ->
+            blob "Loading…"
+
+        Success list ->
+            List.map (messageWithUser model) list |> messagesView
+
+        Failure _ ->
+            blob "Error loading messages"
 
 
 messageWithUser : Model -> Message -> ( Message, Maybe User )
