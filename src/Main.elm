@@ -6,8 +6,9 @@ import Conversation exposing (Conversations)
 import Element exposing (layout)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
-import RemoteData exposing (RemoteData(..), WebData, append)
-import User exposing (Users)
+import RemoteData exposing (RemoteData(..), WebData)
+import Tuple.Trio as Trio
+import User exposing (User, Users)
 import View
 
 
@@ -30,12 +31,14 @@ type Model
 type alias LoadingModel =
     { users : WebData Users
     , conversations : WebData Conversations
+    , me : WebData User
     }
 
 
 type Msg
     = GotUsers (WebData Users)
     | GotConversations (WebData Conversations)
+    | GotMe (WebData User)
     | ChatMsg Chat.Msg
 
 
@@ -48,6 +51,9 @@ update msg model =
         ( GotConversations webData, AppLoading loadingModel ) ->
             dataCheck { loadingModel | conversations = webData }
 
+        ( GotMe webData, AppLoading loadingModel ) ->
+            dataCheck { loadingModel | me = webData }
+
         ( ChatMsg chatMsg, Chat chatModel ) ->
             Chat.update chatMsg chatModel
                 |> Tuple.mapBoth Chat (Cmd.map ChatMsg)
@@ -58,9 +64,14 @@ update msg model =
 
 dataCheck : LoadingModel -> ( Model, Cmd Msg )
 dataCheck lModel =
-    case append lModel.users lModel.conversations of
-        Success ( users, conversations ) ->
-            Chat.init users conversations
+    case
+        RemoteData.succeed Trio.intrine
+            |> RemoteData.andMap lModel.users
+            |> RemoteData.andMap lModel.conversations
+            |> RemoteData.andMap lModel.me
+    of
+        Success ( users, conversations, me ) ->
+            Chat.init users conversations me
                 |> Tuple.mapBoth Chat (Cmd.map ChatMsg)
 
         NotAsked ->
@@ -111,10 +122,11 @@ subscriptions model =
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( AppLoading (LoadingModel NotAsked NotAsked)
+    ( AppLoading (LoadingModel NotAsked NotAsked NotAsked)
     , Cmd.batch
-        [ User.get GotUsers
-        , Conversation.get GotConversations
+        [ User.getAll GotUsers
+        , Conversation.getAll GotConversations
+        , User.getMe GotMe
         ]
     )
 

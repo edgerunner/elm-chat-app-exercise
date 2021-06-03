@@ -7,7 +7,7 @@ module Chat exposing
     , focusedConversation
     , focusedMessages
     , init
-    , messageFrom
+    , me
     , msg
     , subscriptions
     , update
@@ -22,7 +22,7 @@ import Conversation exposing (Conversation, Conversations)
 import Id exposing (Id)
 import IdDict
 import Message exposing (Message)
-import RemoteData
+import RemoteData exposing (WebData)
 import Task
 import User exposing (User, Users)
 
@@ -34,6 +34,7 @@ type Model
 type alias Internals =
     { users : Users
     , conversations : Conversations
+    , me : User
     , focus : Maybe Id
     , width : Int
     }
@@ -57,11 +58,12 @@ msg =
     }
 
 
-init : Users -> Conversations -> ( Model, Cmd Msg )
-init users_ conversations_ =
+init : Users -> Conversations -> User -> ( Model, Cmd Msg )
+init users_ conversations_ me_ =
     ( Model
         { users = users_
         , conversations = conversations_
+        , me = me_
         , focus = Nothing
         , width = 0
         }
@@ -143,18 +145,12 @@ focusedConversation model =
         |> Maybe.andThen ((|>) (internals .conversations model))
 
 
-focusedMessages : Model -> Maybe (List Message)
+focusedMessages : Model -> Maybe (WebData (List Message))
 focusedMessages model =
     model
         |> focusedConversation
         |> Maybe.map Conversation.messages
-        |> Maybe.andThen RemoteData.toMaybe
-        |> Maybe.map IdDict.toList
-
-
-messageFrom : Message -> Model -> Maybe User
-messageFrom message =
-    user (Message.from message)
+        |> Maybe.map (RemoteData.map IdDict.toList)
 
 
 users : Model -> List User
@@ -175,6 +171,11 @@ conversations =
 conversation : Id -> Model -> Maybe Conversation
 conversation id =
     internals .conversations >> IdDict.get id
+
+
+me : Model -> User
+me =
+    internals .me
 
 
 width : Model -> Int
