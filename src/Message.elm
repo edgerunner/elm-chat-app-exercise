@@ -1,4 +1,4 @@
-module Message exposing (Message, Messages, Model, asList, body, decoder, get, incoming, init)
+module Message exposing (Message, Messages, Model, asClusters, asList, body, decoder, get, incoming, init)
 
 import Api
 import Id exposing (Id)
@@ -76,4 +76,32 @@ body =
 
 asList : Messages -> List Message
 asList =
-    IdDict.toList
+    IdDict.toList >> List.sortBy (internals .time >> Time.posixToMillis)
+
+
+type alias Cluster =
+    { first : Message
+    , rest : List Message
+    }
+
+
+asClusters : Messages -> List Cluster
+asClusters =
+    asList >> List.foldl makeCluster []
+
+
+makeCluster : Message -> List Cluster -> List Cluster
+makeCluster message clusters =
+    case clusters of
+        [] ->
+            [ Cluster message [] ]
+
+        { first, rest } :: others ->
+            if incoming message == incoming first then
+                { first = first, rest = message :: rest }
+                    :: others
+
+            else
+                { first = message, rest = [] }
+                    :: { first = first, rest = List.reverse rest }
+                    :: others
