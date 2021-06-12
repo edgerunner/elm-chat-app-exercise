@@ -127,38 +127,55 @@ conversationStateView model conv =
             blob "Loading…"
 
         Success dict ->
-            Message.asList dict
-                |> List.map
-                    (\message ->
-                        let
-                            user =
-                                if Message.incoming message then
-                                    Chat.user (Conversation.with conv) model
-
-                                else
-                                    Chat.me model |> Just
-                        in
-                        ( message, user )
-                    )
-                |> messagesView
+            Message.asClusters dict
+                |> populateClusters
+                    (Chat.me model)
+                    (Chat.user (Conversation.with conv) model)
+                |> clustersView
 
         Failure _ ->
             blob "Error loading messages"
 
 
-messagesView : List ( Message, Maybe User ) -> Element msg
+clustersView : List { first : Message, rest : List Message, sender : Maybe User } -> Element msg
+clustersView =
+    List.map clusterView >> column [ spacing (em 1) ]
+
+
+clusterView : { first : Message, rest : List Message, sender : Maybe User } -> Element msg
+clusterView { first, rest, sender } =
+    row [ spacing (em 0.5) ]
+        [ Maybe.map (avatar 2) sender
+            |> Maybe.withDefault Element.none
+        , messagesView (first :: rest)
+        ]
+
+
+populateClusters :
+    User
+    -> Maybe User
+    -> List { first : Message, rest : List Message }
+    -> List { first : Message, rest : List Message, sender : Maybe User }
+populateClusters me otherUser =
+    let
+        sender message =
+            if Message.incoming message then
+                otherUser
+
+            else
+                Just me
+    in
+    List.map (\{ first, rest } -> { sender = sender first, first = first, rest = rest })
+
+
+messagesView : List Message -> Element msg
 messagesView =
-    List.map messageView >> column [ padding (em 1), spacing (em 0.5) ]
+    List.map messageView >> column [ spacing (em 0.5), alignTop ]
 
 
-messageView : ( Message, Maybe User ) -> Element msg
-messageView ( message, maybeUser ) =
-    case maybeUser of
-        Just user ->
-            row [ spacing (em 0.5) ] [ avatar 1 user, text <| Message.body message ]
-
-        Nothing ->
-            row [ spacing (em 0.5) ] [ text "?", text <| Message.body message ]
+messageView : Message -> Element msg
+messageView =
+    text << Message.body
 
 
 blob : String -> Element msg
@@ -222,5 +239,6 @@ avatar size user =
         , width (eml size)
         , Border.rounded (em <| size / 2)
         , clip
+        , alignTop
         ]
         { src = User.avatar user, description = User.name user }
