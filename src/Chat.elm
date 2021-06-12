@@ -41,20 +41,20 @@ type alias Internals =
 
 
 type Msg
-    = FocusConversation Conversation
-    | BlurConversation
-    | WindowResize Int Int
-    | WindowInitialize Browser.Dom.Viewport
+    = ConversationSelected Conversation
+    | ConversationDeselected
+    | WindowResized Int Int
+    | GotViewport Browser.Dom.Viewport
     | GotMessages Conversation
 
 
 msg :
-    { focusConversation : Conversation -> Msg
-    , blurConversation : Msg
+    { conversationSelected : Conversation -> Msg
+    , conversationDeselected : Msg
     }
 msg =
-    { focusConversation = FocusConversation
-    , blurConversation = BlurConversation
+    { conversationSelected = ConversationSelected
+    , conversationDeselected = ConversationDeselected
     }
 
 
@@ -67,7 +67,7 @@ init users_ conversations_ me_ =
         , focus = Nothing
         , width = 0
         }
-    , Task.perform WindowInitialize Browser.Dom.getViewport
+    , Task.perform GotViewport Browser.Dom.getViewport
     )
 
 
@@ -78,19 +78,19 @@ update msg_ model =
             ( transform model, Cmd.none )
     in
     case msg_ of
-        FocusConversation conv ->
+        ConversationSelected conv ->
             conv
                 |> Conversation.checkAndLoad GotMessages
                 |> Tuple.mapFirst
                     (\c -> replaceAndFocusConversation c model)
 
-        BlurConversation ->
+        ConversationDeselected ->
             only blurConversation
 
-        WindowResize width_ _ ->
+        WindowResized width_ _ ->
             only <| windowResize width_
 
-        WindowInitialize window ->
+        GotViewport window ->
             only <| windowResize (truncate window.viewport.width)
 
         GotMessages conversation_ ->
@@ -130,7 +130,7 @@ windowResize width_ (Model model) =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Browser.Events.onResize WindowResize
+    Browser.Events.onResize WindowResized
 
 
 

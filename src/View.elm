@@ -89,7 +89,7 @@ conversationList model =
         (List.map
             (\conv ->
                 el
-                    ([ Events.onClick (Chat.msg.focusConversation conv)
+                    ([ Events.onClick (Chat.msg.conversationSelected conv)
                      , width fill
                      , pointer
                      ]
@@ -109,7 +109,7 @@ conversationView model =
     el
         [ width fill
         , height fill
-        , Events.onClick Chat.msg.blurConversation
+        , Events.onClick Chat.msg.conversationDeselected
         ]
         (Chat.focusedConversation model
             |> Maybe.map (conversationStateView model)
